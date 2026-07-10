@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { requireAuth } from './middlewares/requireAuth';
 
 dotenv.config();
 
@@ -10,10 +11,21 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 4000;
 
-app.get('/health', (req,res)=>{
-    res.json({status: "ok"});
+// ── Public routes ────────────────────────────────────────────────────────────
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok' });
 });
 
-app.listen(PORT, ()=>{
-    console.log(`Server running on PORT ${PORT}`);
+// ── Protected routes (every handler below requires a valid Clerk JWT) ────────
+// Example: GET /me  — returns the verified userId from the token
+app.get('/me', requireAuth, (req, res) => {
+  res.json({ userId: req.userId });
+});
+
+// TODO: mount feature routers here, e.g.:
+// import habitRoutes from './routes/habits';
+// app.use('/habits', requireAuth, habitRoutes);
+
+app.listen(PORT, () => {
+  console.log(`Server running on PORT ${PORT}`);
 });
