@@ -1,26 +1,41 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  /* Atlassian/Jira Design Palette */
+  --color-brand: #0052CC;
+  --color-brand-hover: #0747A6;
+  --color-brand-subtle: #DEEBFF;
+  
+  --color-ds-bg: #FFFFFF;
+  --color-ds-bg-neutral: #F4F5F7;
+  --color-ds-bg-neutral-hover: #EBECF0;
+  --color-ds-bg-neutral-subtle: #FAFBFC;
+  
+  --color-ds-text: #172B4D;          /* Primary Charcoal */
+  --color-ds-text-subtle: #5E6C84;   /* Secondary Cool Gray */
+  --color-ds-text-brand: #0052CC;    /* Atlassian Blue */
+  
+  --color-ds-border: #DFE1E6;        /* Light Gray Border */
+  --color-ds-border-focus: #4C9AFF;  /* Soft Focus Blue */
+  
+  /* Issue Priorities */
+  --color-ds-priority-highest: #DE350B;
+  --color-ds-priority-high: #FF5630;
+  --color-ds-priority-medium: #FFAB00;
+  --color-ds-priority-low: #36B37E;
+  --color-ds-priority-lowest: #0065FF;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Custom Radii & Shadows */
+  --radius-ds-btn: 3px;
+  --radius-ds-card: 4px;
+  --shadow-ds-elevation: 0px 1px 1px rgba(9, 30, 66, 0.25), 0px 0px 1px rgba(9, 30, 66, 0.31);
+  --shadow-ds-dialog: 0px 8px 24px rgba(9, 30, 66, 0.15), 0px 0px 1px rgba(9, 30, 66, 0.31);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-ds-bg-neutral-subtle);
+  color: var(--color-ds-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  margin: 0;
+  padding: 0;
 }
