@@ -42,12 +42,6 @@ export default function LoginPage() {
           }}
         />
       </div>
-
-      {/* Footer copyright */}
-      <div className="mt-12 text-center text-xs text-ds-text-subtle z-10">
-        <p>One account for Jira, Confluence, Cadence and Trello.</p>
-        <p className="mt-1.5">&copy; {new Date().getFullYear()} Atlassian. All rights reserved.</p>
-      </div>
     </div>
   );
 }

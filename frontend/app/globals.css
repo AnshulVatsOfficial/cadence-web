@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  /* Atlassian/Jira Design Palette */
+  /* Design Palette */
   --color-brand: #0052CC;
   --color-brand-hover: #0747A6;
   --color-brand-subtle: #DEEBFF;
@@ -13,7 +13,7 @@
   
   --color-ds-text: #172B4D;          /* Primary Charcoal */
   --color-ds-text-subtle: #5E6C84;   /* Secondary Cool Gray */
-  --color-ds-text-brand: #0052CC;    /* Atlassian Blue */
+  --color-ds-text-brand: #0052CC;    /* Brand Blue */
   
   --color-ds-border: #DFE1E6;        /* Light Gray Border */
   --color-ds-border-focus: #4C9AFF;  /* Soft Focus Blue */

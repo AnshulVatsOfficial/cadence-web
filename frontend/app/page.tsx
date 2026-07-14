@@ -49,14 +49,14 @@ export default async function Home() {
       {/* Hero Section */}
       <main className="flex-1 flex flex-col items-center justify-center text-center px-4 py-20 bg-gradient-to-b from-ds-bg to-ds-bg-neutral-subtle">
         <span className="text-xs font-semibold text-brand uppercase tracking-wider bg-brand-subtle px-2.5 py-1 rounded-full mb-4">
-          Now supporting Clerk Auth
+          Secure Single Sign-On Enabled
         </span>
         <h1 className="max-w-3xl text-5xl font-extrabold tracking-tight text-ds-text sm:text-6xl leading-[1.15]">
           Move work forward with <span className="text-brand">Cadence</span>
         </h1>
         <p className="mt-6 max-w-xl text-lg text-ds-text-subtle leading-relaxed">
           The ultimate internal project management tool designed for engineering and design teams. 
-          Plan, track, and release world-class software with a JIRA-inspired Kanban interface.
+          Plan, track, and release world-class software with a Kanban interface.
         </p>
 
         <div className="mt-10 flex flex-col sm:flex-row gap-4">
@@ -102,7 +102,7 @@ export default async function Home() {
             <div className="col-span-1 bg-ds-bg-neutral p-4 rounded-[4px] border border-ds-border h-32 flex flex-col justify-between">
               <div>
                 <span className="text-[10px] font-bold text-ds-text-subtle tracking-wide uppercase">DONE</span>
-                <h4 className="text-xs font-semibold text-ds-text mt-1">Configure Clerk providers</h4>
+                <h4 className="text-xs font-semibold text-ds-text mt-1">Configure identity providers</h4>
               </div>
               <span className="text-[10px] text-brand font-mono">CAD-103</span>
             </div>
@@ -112,7 +112,7 @@ export default async function Home() {
 
       {/* Footer */}
       <footer className="bg-ds-bg border-t border-ds-border py-8 text-center text-xs text-ds-text-subtle">
-        <p>&copy; {new Date().getFullYear()} Cadence Software. Styled with Atlassian Design tokens.</p>
+        <p>&copy; {new Date().getFullYear()} Cadence Software. All rights reserved.</p>
       </footer>
     </div>
   );

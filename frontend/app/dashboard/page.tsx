@@ -12,24 +12,24 @@ const INITIAL_COLUMNS = [
     tasks: [
       {
         id: "CAD-1",
-        title: "Integrate Clerk Authentication in Next.js frontend",
-        description: "Install @clerk/nextjs, create middleware, and style authentication pages.",
+        title: "Integrate secure authentication in frontend",
+        description: "Configure authentication middleware, routing redirects, and customize user access pages.",
         priority: "high",
         labels: ["Auth", "Frontend"],
         assignee: "JD",
       },
       {
         id: "CAD-2",
-        title: "Create requireAuth middleware in Express",
-        description: "Parse Bearer token, verify it using Clerk keys, and attach user context.",
+        title: "Create authentication middleware in backend API",
+        description: "Parse authorization headers, verify token signature, and attach user context payload.",
         priority: "medium",
         labels: ["Auth", "Backend"],
         assignee: "AV",
       },
       {
         id: "CAD-3",
-        title: "Configure Atlassian Design System tokens",
-        description: "Add design system CSS variables to globals.css and map them to Tailwind.",
+        title: "Configure base design system tokens",
+        description: "Add primary and neutral CSS variables to globals.css and integrate with theme styles.",
         priority: "low",
         labels: ["Styling"],
         assignee: "JD",
@@ -58,8 +58,8 @@ const INITIAL_COLUMNS = [
     tasks: [
       {
         id: "CAD-5",
-        title: "Style signup and login pages with JIRA theme",
-        description: "Apply custom appearance styling to Clerk components inside page wrappers.",
+        title: "Style signup and login pages",
+        description: "Apply custom theme variables and classes to the authentication components.",
         priority: "medium",
         labels: ["Styling", "Frontend"],
         assignee: "JD",

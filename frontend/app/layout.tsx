@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Cadence - JIRA Project Management",
+  title: "Cadence - Project Management",
   description: "Next-generation Kanban and issue tracking built for high-performance teams.",
 };
 

@@ -13,7 +13,7 @@ export default function SignupPage() {
           </svg>
           <span className="font-sans font-extrabold">CADENCE</span>
         </div>
-        <p className="mt-2.5 text-sm text-ds-text-subtle font-medium">Create your JIRA account to start collaborating</p>
+        <p className="mt-2.5 text-sm text-ds-text-subtle font-medium">Create your account to start collaborating</p>
       </div>
 
       {/* ── Clerk Card Wrap ── */}
