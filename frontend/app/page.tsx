@@ -55,8 +55,9 @@ export default async function Home() {
           Move work forward with <span className="text-brand">Cadence</span>
         </h1>
         <p className="mt-6 max-w-xl text-lg text-ds-text-subtle leading-relaxed">
-          The ultimate internal project management tool designed for engineering and design teams. 
-          Plan, track, and release world-class software with a Kanban interface.
+          The ultimate internal project management tool designed for engineering
+          and design teams. Plan, track, and release world-class software with a
+          Kanban interface.
         </p>
 
         <div className="mt-10 flex flex-col sm:flex-row gap-4">
@@ -82,27 +83,41 @@ export default async function Home() {
             <span className="h-3 w-3 rounded-full bg-red-500"></span>
             <span className="h-3 w-3 rounded-full bg-yellow-500"></span>
             <span className="h-3 w-3 rounded-full bg-green-500"></span>
-            <span className="text-xs text-ds-text-subtle pl-2 font-mono">http://localhost:3000/dashboard</span>
+            <span className="text-xs text-ds-text-subtle pl-2 font-mono">
+              http://localhost:3000/dashboard
+            </span>
           </div>
           <div className="grid grid-cols-3 gap-4">
             <div className="col-span-1 bg-ds-bg-neutral p-4 rounded-[4px] border border-ds-border h-32 flex flex-col justify-between">
               <div>
-                <span className="text-[10px] font-bold text-ds-text-subtle tracking-wide uppercase">TO DO</span>
-                <h4 className="text-xs font-semibold text-ds-text mt-1">Setup production database</h4>
+                <span className="text-[10px] font-bold text-ds-text-subtle tracking-wide uppercase">
+                  TO DO
+                </span>
+                <h4 className="text-xs font-semibold text-ds-text mt-1">
+                  Setup production database
+                </h4>
               </div>
               <span className="text-[10px] text-brand font-mono">CAD-101</span>
             </div>
             <div className="col-span-1 bg-ds-bg-neutral p-4 rounded-[4px] border border-ds-border h-32 flex flex-col justify-between">
               <div>
-                <span className="text-[10px] font-bold text-ds-text-subtle tracking-wide uppercase">IN PROGRESS</span>
-                <h4 className="text-xs font-semibold text-ds-text mt-1">Implement user signup flow</h4>
+                <span className="text-[10px] font-bold text-ds-text-subtle tracking-wide uppercase">
+                  IN PROGRESS
+                </span>
+                <h4 className="text-xs font-semibold text-ds-text mt-1">
+                  Implement user signup flow
+                </h4>
               </div>
               <span className="text-[10px] text-brand font-mono">CAD-102</span>
             </div>
             <div className="col-span-1 bg-ds-bg-neutral p-4 rounded-[4px] border border-ds-border h-32 flex flex-col justify-between">
               <div>
-                <span className="text-[10px] font-bold text-ds-text-subtle tracking-wide uppercase">DONE</span>
-                <h4 className="text-xs font-semibold text-ds-text mt-1">Configure identity providers</h4>
+                <span className="text-[10px] font-bold text-ds-text-subtle tracking-wide uppercase">
+                  DONE
+                </span>
+                <h4 className="text-xs font-semibold text-ds-text mt-1">
+                  Configure identity providers
+                </h4>
               </div>
               <span className="text-[10px] text-brand font-mono">CAD-103</span>
             </div>
@@ -112,7 +127,10 @@ export default async function Home() {
 
       {/* Footer */}
       <footer className="bg-ds-bg border-t border-ds-border py-8 text-center text-xs text-ds-text-subtle">
-        <p>&copy; {new Date().getFullYear()} Cadence Software. All rights reserved.</p>
+        <p>
+          &copy; {new Date().getFullYear()} Cadence Software. All rights
+          reserved.
+        </p>
       </footer>
     </div>
   );

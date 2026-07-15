@@ -15,7 +15,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Cadence - Project Management",
-  description: "Next-generation Kanban and issue tracking built for high-performance teams.",
+  description:
+    "Next-generation Kanban and issue tracking built for high-performance teams.",
 };
 
 export default function RootLayout({

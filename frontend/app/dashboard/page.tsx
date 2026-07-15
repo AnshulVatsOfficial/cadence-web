@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { UserButton, useUser } from "@clerk/nextjs";
+import { useState, useEffect } from "react";
+import { UserButton, useUser, useAuth } from "@clerk/nextjs";
 
 // Mock task data matching the Atlassian layout and schema
 const INITIAL_COLUMNS = [
@@ -13,7 +13,8 @@ const INITIAL_COLUMNS = [
       {
         id: "CAD-1",
         title: "Integrate secure authentication in frontend",
-        description: "Configure authentication middleware, routing redirects, and customize user access pages.",
+        description:
+          "Configure authentication middleware, routing redirects, and customize user access pages.",
         priority: "high",
         labels: ["Auth", "Frontend"],
         assignee: "JD",
@@ -21,7 +22,8 @@ const INITIAL_COLUMNS = [
       {
         id: "CAD-2",
         title: "Create authentication middleware in backend API",
-        description: "Parse authorization headers, verify token signature, and attach user context payload.",
+        description:
+          "Parse authorization headers, verify token signature, and attach user context payload.",
         priority: "medium",
         labels: ["Auth", "Backend"],
         assignee: "AV",
@@ -29,7 +31,8 @@ const INITIAL_COLUMNS = [
       {
         id: "CAD-3",
         title: "Configure base design system tokens",
-        description: "Add primary and neutral CSS variables to globals.css and integrate with theme styles.",
+        description:
+          "Add primary and neutral CSS variables to globals.css and integrate with theme styles.",
         priority: "low",
         labels: ["Styling"],
         assignee: "JD",
@@ -44,7 +47,8 @@ const INITIAL_COLUMNS = [
       {
         id: "CAD-4",
         title: "Verify database synchronization on user signup",
-        description: "Check if the backend successfully executes syncUser on the first request.",
+        description:
+          "Check if the backend successfully executes syncUser on the first request.",
         priority: "highest",
         labels: ["Database", "Backend"],
         assignee: "AV",
@@ -59,7 +63,8 @@ const INITIAL_COLUMNS = [
       {
         id: "CAD-5",
         title: "Style signup and login pages",
-        description: "Apply custom theme variables and classes to the authentication components.",
+        description:
+          "Apply custom theme variables and classes to the authentication components.",
         priority: "medium",
         labels: ["Styling", "Frontend"],
         assignee: "JD",
@@ -74,7 +79,8 @@ const INITIAL_COLUMNS = [
       {
         id: "CAD-6",
         title: "Project Initialization",
-        description: "Configure multi-repo setup for frontend and backend API codebases.",
+        description:
+          "Configure multi-repo setup for frontend and backend API codebases.",
         priority: "low",
         labels: ["Setup"],
         assignee: "AV",
@@ -85,16 +91,48 @@ const INITIAL_COLUMNS = [
 
 export default function DashboardPage() {
   const { user, isLoaded } = useUser();
+  const { getToken } = useAuth();
   const [columns, setColumns] = useState(INITIAL_COLUMNS);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  // Backend DB id fetched via GET /profile — requireAuth upserts the user
+  // on first authenticated call, so this succeeds even if the webhook hasn't
+  // fired yet (webhook is now just a faster, optional sync path).
+  const [backendDbId, setBackendDbId] = useState<string | null>(null);
+  const [profileError, setProfileError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isLoaded || !user) return;
+    (async () => {
+      try {
+        const token = await getToken();
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/profile`,
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+        if (!res.ok) {
+          const err = await res.json();
+          setProfileError(err.error ?? `HTTP ${res.status}`);
+          return;
+        }
+        const { user: dbUser } = await res.json();
+        setBackendDbId(dbUser.id);
+      } catch (e: any) {
+        setProfileError(e.message);
+      }
+    })();
+  }, [isLoaded, user, getToken]);
 
   // Helper to render priority arrow SVG
   const renderPriorityIcon = (priority: string) => {
     switch (priority) {
       case "highest":
         return (
-          <span className="text-ds-priority-highest flex items-center" title="Highest Priority">
+          <span
+            className="text-ds-priority-highest flex items-center"
+            title="Highest Priority"
+          >
             <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
               <path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z" />
             </svg>
@@ -102,7 +140,10 @@ export default function DashboardPage() {
         );
       case "high":
         return (
-          <span className="text-ds-priority-high flex items-center" title="High Priority">
+          <span
+            className="text-ds-priority-high flex items-center"
+            title="High Priority"
+          >
             <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
               <path d="M4 15l1.41 1.41L11 10.83V20h2v-9.17l5.58 5.59L20 15l-8-8-8 8z" />
             </svg>
@@ -110,7 +151,10 @@ export default function DashboardPage() {
         );
       case "medium":
         return (
-          <span className="text-ds-priority-medium flex items-center" title="Medium Priority">
+          <span
+            className="text-ds-priority-medium flex items-center"
+            title="Medium Priority"
+          >
             <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
               <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
             </svg>
@@ -118,7 +162,10 @@ export default function DashboardPage() {
         );
       case "low":
         return (
-          <span className="text-ds-priority-low flex items-center" title="Low Priority">
+          <span
+            className="text-ds-priority-low flex items-center"
+            title="Low Priority"
+          >
             <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
               <path d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z" />
             </svg>
@@ -166,7 +213,12 @@ export default function DashboardPage() {
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
           </button>
         </div>
@@ -177,8 +229,18 @@ export default function DashboardPage() {
             href="#"
             className="flex items-center space-x-3 px-3 py-2 text-sm font-medium rounded-ds-btn hover:bg-ds-bg-neutral-hover text-ds-text"
           >
-            <svg className="w-4 h-4 text-ds-text-subtle" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+            <svg
+              className="w-4 h-4 text-ds-text-subtle"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+              />
             </svg>
             {!isSidebarCollapsed && <span>Roadmap</span>}
           </a>
@@ -186,8 +248,18 @@ export default function DashboardPage() {
             href="#"
             className="flex items-center space-x-3 px-3 py-2 text-sm font-medium rounded-ds-btn hover:bg-ds-bg-neutral-hover text-ds-text"
           >
-            <svg className="w-4 h-4 text-ds-text-subtle" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
+            <svg
+              className="w-4 h-4 text-ds-text-subtle"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h7"
+              />
             </svg>
             {!isSidebarCollapsed && <span>Backlog</span>}
           </a>
@@ -195,8 +267,18 @@ export default function DashboardPage() {
             href="#"
             className="flex items-center space-x-3 px-3 py-2 text-sm font-semibold rounded-ds-btn bg-brand-subtle text-brand"
           >
-            <svg className="w-4 h-4 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+            <svg
+              className="w-4 h-4 text-brand"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"
+              />
             </svg>
             {!isSidebarCollapsed && <span>Active Board</span>}
           </a>
@@ -205,9 +287,24 @@ export default function DashboardPage() {
             href="#"
             className="flex items-center space-x-3 px-3 py-2 text-sm font-medium rounded-ds-btn hover:bg-ds-bg-neutral-hover text-ds-text"
           >
-            <svg className="w-4 h-4 text-ds-text-subtle" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <svg
+              className="w-4 h-4 text-ds-text-subtle"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              />
             </svg>
             {!isSidebarCollapsed && <span>Project Settings</span>}
           </a>
@@ -218,8 +315,32 @@ export default function DashboardPage() {
           <div className="p-3 border-t border-ds-border flex items-center space-x-3">
             <UserButton />
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-ds-text truncate">{user.fullName || "Loading..."}</p>
-              <p className="text-[10px] text-ds-text-subtle truncate">{user.primaryEmailAddress?.emailAddress}</p>
+              <p className="text-xs font-semibold text-ds-text truncate">
+                {user.fullName || "Loading..."}
+              </p>
+              <p className="text-[10px] text-ds-text-subtle truncate">
+                {user.primaryEmailAddress?.emailAddress}
+              </p>
+              {/* Webhook sync indicator — shows the backend Prisma DB id */}
+              {backendDbId ? (
+                <span
+                  className="inline-flex items-center gap-1 mt-1 text-[9px] font-mono text-green-700 bg-green-50 border border-green-200 px-1.5 py-0.5 rounded"
+                  title={`Your Prisma DB id: ${backendDbId}`}
+                >
+                  ✓ DB synced
+                </span>
+              ) : profileError ? (
+                <span
+                  className="inline-flex items-center gap-1 mt-1 text-[9px] font-mono text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded"
+                  title={profileError}
+                >
+                  ✗ {profileError}
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 mt-1 text-[9px] font-mono text-ds-text-subtle">
+                  syncing…
+                </span>
+              )}
             </div>
           </div>
         )}
@@ -238,7 +359,9 @@ export default function DashboardPage() {
               <span>/</span>
               <span className="text-ds-text">Board</span>
             </div>
-            <h1 className="text-xl font-bold text-ds-text tracking-tight">Active Sprint Board</h1>
+            <h1 className="text-xl font-bold text-ds-text tracking-tight">
+              Active Sprint Board
+            </h1>
           </div>
 
           {/* User Button (Clerk controls) */}
@@ -252,8 +375,18 @@ export default function DashboardPage() {
                 className="w-48 px-3 py-1.5 text-sm bg-ds-bg-neutral-subtle border border-ds-border rounded-ds-btn focus:outline-none focus:bg-ds-bg focus:border-ds-border-focus focus:ring-1 focus:ring-ds-border-focus transition-all"
               />
               <span className="absolute right-2.5 top-2.5 text-ds-text-subtle">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
                 </svg>
               </span>
             </div>
@@ -264,12 +397,20 @@ export default function DashboardPage() {
         {/* Board Toolbar */}
         <section className="px-6 py-4 flex items-center justify-between border-b border-ds-border bg-ds-bg-neutral-subtle">
           <div className="flex items-center space-x-4">
-            <span className="text-xs font-semibold text-ds-text-subtle uppercase tracking-wider">Filters:</span>
+            <span className="text-xs font-semibold text-ds-text-subtle uppercase tracking-wider">
+              Filters:
+            </span>
             <div className="flex -space-x-1.5 overflow-hidden">
-              <div className="inline-block h-6 w-6 rounded-full ring-2 ring-white bg-brand text-white text-[10px] font-bold flex items-center justify-center cursor-pointer" title="John Doe">
+              <div
+                className="inline-block h-6 w-6 rounded-full ring-2 ring-white bg-brand text-white text-[10px] font-bold flex items-center justify-center cursor-pointer"
+                title="John Doe"
+              >
                 JD
               </div>
-              <div className="inline-block h-6 w-6 rounded-full ring-2 ring-white bg-ds-priority-low text-white text-[10px] font-bold flex items-center justify-center cursor-pointer" title="Anshul Vats">
+              <div
+                className="inline-block h-6 w-6 rounded-full ring-2 ring-white bg-ds-priority-low text-white text-[10px] font-bold flex items-center justify-center cursor-pointer"
+                title="Anshul Vats"
+              >
                 AV
               </div>
             </div>
@@ -281,8 +422,18 @@ export default function DashboardPage() {
             </button>
           </div>
           <button className="text-xs px-3 py-1.5 bg-brand hover:bg-brand-hover text-white font-medium rounded-ds-btn transition-colors flex items-center space-x-1">
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            <svg
+              className="w-3.5 h-3.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
             </svg>
             <span>Create Issue</span>
           </button>
@@ -295,8 +446,10 @@ export default function DashboardPage() {
               // Filter tasks on search query
               const filteredTasks = column.tasks.filter(
                 (task) =>
-                  task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                  task.id.toLowerCase().includes(searchQuery.toLowerCase())
+                  task.title
+                    .toLowerCase()
+                    .includes(searchQuery.toLowerCase()) ||
+                  task.id.toLowerCase().includes(searchQuery.toLowerCase()),
               );
 
               return (
@@ -310,12 +463,18 @@ export default function DashboardPage() {
                       <span className="text-xs font-bold tracking-wider text-ds-text-subtle">
                         {column.name}
                       </span>
-                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${column.color}`}>
+                      <span
+                        className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${column.color}`}
+                      >
                         {filteredTasks.length}
                       </span>
                     </div>
                     <button className="p-1 rounded-ds-btn hover:bg-ds-bg-neutral-hover text-ds-text-subtle">
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <svg
+                        className="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
                         <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM18 10a2 2 0 11-4 0 2 2 0 014 0z" />
                       </svg>
                     </button>
@@ -356,7 +515,10 @@ export default function DashboardPage() {
                           </span>
                           <div className="flex items-center space-x-2">
                             {renderPriorityIcon(task.priority)}
-                            <div className="h-5 w-5 rounded-full bg-brand text-white text-[9px] font-bold flex items-center justify-center" title={`Assignee: ${task.assignee}`}>
+                            <div
+                              className="h-5 w-5 rounded-full bg-brand text-white text-[9px] font-bold flex items-center justify-center"
+                              title={`Assignee: ${task.assignee}`}
+                            >
                               {task.assignee}
                             </div>
                           </div>
