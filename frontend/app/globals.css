@@ -2,40 +2,44 @@
 
 @theme {
   /* Design Palette */
-  --color-brand: #0052CC;
-  --color-brand-hover: #0747A6;
-  --color-brand-subtle: #DEEBFF;
-  
-  --color-ds-bg: #FFFFFF;
-  --color-ds-bg-neutral: #F4F5F7;
-  --color-ds-bg-neutral-hover: #EBECF0;
-  --color-ds-bg-neutral-subtle: #FAFBFC;
-  
-  --color-ds-text: #172B4D;          /* Primary Charcoal */
-  --color-ds-text-subtle: #5E6C84;   /* Secondary Cool Gray */
-  --color-ds-text-brand: #0052CC;    /* Brand Blue */
-  
-  --color-ds-border: #DFE1E6;        /* Light Gray Border */
-  --color-ds-border-focus: #4C9AFF;  /* Soft Focus Blue */
-  
+  --color-brand: #0052cc;
+  --color-brand-hover: #0747a6;
+  --color-brand-subtle: #deebff;
+
+  --color-ds-bg: #ffffff;
+  --color-ds-bg-neutral: #f4f5f7;
+  --color-ds-bg-neutral-hover: #ebecf0;
+  --color-ds-bg-neutral-subtle: #fafbfc;
+
+  --color-ds-text: #172b4d; /* Primary Charcoal */
+  --color-ds-text-subtle: #5e6c84; /* Secondary Cool Gray */
+  --color-ds-text-brand: #0052cc; /* Brand Blue */
+
+  --color-ds-border: #dfe1e6; /* Light Gray Border */
+  --color-ds-border-focus: #4c9aff; /* Soft Focus Blue */
+
   /* Issue Priorities */
-  --color-ds-priority-highest: #DE350B;
-  --color-ds-priority-high: #FF5630;
-  --color-ds-priority-medium: #FFAB00;
-  --color-ds-priority-low: #36B37E;
-  --color-ds-priority-lowest: #0065FF;
+  --color-ds-priority-highest: #de350b;
+  --color-ds-priority-high: #ff5630;
+  --color-ds-priority-medium: #ffab00;
+  --color-ds-priority-low: #36b37e;
+  --color-ds-priority-lowest: #0065ff;
 
   /* Custom Radii & Shadows */
   --radius-ds-btn: 3px;
   --radius-ds-card: 4px;
-  --shadow-ds-elevation: 0px 1px 1px rgba(9, 30, 66, 0.25), 0px 0px 1px rgba(9, 30, 66, 0.31);
-  --shadow-ds-dialog: 0px 8px 24px rgba(9, 30, 66, 0.15), 0px 0px 1px rgba(9, 30, 66, 0.31);
+  --shadow-ds-elevation:
+    0px 1px 1px rgba(9, 30, 66, 0.25), 0px 0px 1px rgba(9, 30, 66, 0.31);
+  --shadow-ds-dialog:
+    0px 8px 24px rgba(9, 30, 66, 0.15), 0px 0px 1px rgba(9, 30, 66, 0.31);
 }
 
 body {
   background: var(--color-ds-bg-neutral-subtle);
   color: var(--color-ds-text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
   margin: 0;
   padding: 0;
 }
