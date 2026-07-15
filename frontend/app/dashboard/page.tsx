@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { UserButton, useUser } from "@clerk/nextjs";
+import { useState, useEffect } from "react";
+import { UserButton, useUser, useAuth } from "@clerk/nextjs";
 
 // Mock task data matching the Atlassian layout and schema
 const INITIAL_COLUMNS = [
@@ -85,9 +85,38 @@ const INITIAL_COLUMNS = [
 
 export default function DashboardPage() {
   const { user, isLoaded } = useUser();
+  const { getToken } = useAuth();
   const [columns, setColumns] = useState(INITIAL_COLUMNS);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  // Backend DB id fetched via GET /profile — requireAuth upserts the user
+// on first authenticated call, so this succeeds even if the webhook hasn't
+// fired yet (webhook is now just a faster, optional sync path).
+  const [backendDbId, setBackendDbId] = useState<string | null>(null);
+  const [profileError, setProfileError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isLoaded || !user) return;
+    (async () => {
+      try {
+        const token = await getToken();
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/profile`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        if (!res.ok) {
+          const err = await res.json();
+          setProfileError(err.error ?? `HTTP ${res.status}`);
+          return;
+        }
+        const { user: dbUser } = await res.json();
+        setBackendDbId(dbUser.id);
+      } catch (e: any) {
+        setProfileError(e.message);
+      }
+    })();
+  }, [isLoaded, user, getToken]);
 
   // Helper to render priority arrow SVG
   const renderPriorityIcon = (priority: string) => {
@@ -220,6 +249,26 @@ export default function DashboardPage() {
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold text-ds-text truncate">{user.fullName || "Loading..."}</p>
               <p className="text-[10px] text-ds-text-subtle truncate">{user.primaryEmailAddress?.emailAddress}</p>
+              {/* Webhook sync indicator — shows the backend Prisma DB id */}
+              {backendDbId ? (
+                <span
+                  className="inline-flex items-center gap-1 mt-1 text-[9px] font-mono text-green-700 bg-green-50 border border-green-200 px-1.5 py-0.5 rounded"
+                  title={`Your Prisma DB id: ${backendDbId}`}
+                >
+                  ✓ DB synced
+                </span>
+              ) : profileError ? (
+                <span
+                  className="inline-flex items-center gap-1 mt-1 text-[9px] font-mono text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded"
+                  title={profileError}
+                >
+                  ✗ {profileError}
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 mt-1 text-[9px] font-mono text-ds-text-subtle">
+                  syncing…
+                </span>
+              )}
             </div>
           </div>
         )}
