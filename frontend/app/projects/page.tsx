@@ -9,10 +9,9 @@ import {
   Trash,
   Edit2,
   Briefcase,
-  ExternalLink,
 } from "lucide-react";
-import CreateWorkspaceModal from "../../components/workspaces/CreateWorkspaceModal";
-import EditWorkspaceModal from "../../components/workspaces/EditWorkspaceModal";
+import CreateProjectModal from "../../components/projects/CreateProjectModal";
+import EditProjectModal from "../../components/projects/EditProjectModal";
 import CustomAlertDialog from "../../components/shared/CustomAlertDialog";
 import EmptyState from "../../components/shared/EmptyState";
 import { Button } from "../../components/ui/button";
@@ -24,40 +23,40 @@ import {
   TooltipTrigger,
 } from "../../components/ui/tooltip";
 
-export default function WorkspacesDashboardPage() {
+export default function ProjectsDashboardPage() {
   const { user, isLoaded } = useUser();
   const { getToken } = useAuth();
   const router = useRouter();
 
-  // Workspaces states
-  const [workspaces, setWorkspaces] = useState<any[]>([]);
+  // Projects states
+  const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
   // Modals state
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [selectedWorkspace, setSelectedWorkspace] = useState<any | null>(null);
+  const [selectedProject, setSelectedProject] = useState<any | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Fetch Workspaces
-  const fetchWorkspaces = async () => {
+  // Fetch Projects
+  const fetchProjects = async () => {
     try {
       setLoading(true);
       const token = await getToken();
       if (!token) return;
 
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/workspaces`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (res.ok) {
         const data = await res.json();
-        setWorkspaces(data);
+        setProjects(data);
       }
     } catch (err) {
-      console.error("Error fetching workspaces:", err);
+      console.error("Error fetching projects:", err);
     } finally {
       setLoading(false);
     }
@@ -65,16 +64,16 @@ export default function WorkspacesDashboardPage() {
 
   useEffect(() => {
     if (isLoaded && user) {
-      fetchWorkspaces();
+      fetchProjects();
     }
   }, [isLoaded, user]);
 
-  // Filter workspaces based on search query
-  const filteredWorkspaces = workspaces.filter(
-    (ws) =>
-      ws.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (ws.workspaceType &&
-        ws.workspaceType.toLowerCase().includes(searchQuery.toLowerCase()))
+  // Filter projects based on search query
+  const filteredProjects = projects.filter(
+    (p) =>
+      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (p.projectType &&
+        p.projectType.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   return (
@@ -94,7 +93,7 @@ export default function WorkspacesDashboardPage() {
             onClick={() => setShowCreateModal(true)}
             className="bg-[#0052CC] hover:bg-[#0747A6] text-white text-xs font-semibold rounded-[3px] h-8 px-3 shadow-none"
           >
-            Create Workspace
+            Create Project
           </Button>
           <UserButton />
         </div>
@@ -106,18 +105,18 @@ export default function WorkspacesDashboardPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-[#172B4D]">
-              Workspaces
+              Projects
             </h1>
             <p className="text-xs text-[#5E6C84] mt-1 leading-relaxed">
-              Select or create a workspace to view active boards, sprints, and project timelines.
+              Select or create a project to view active boards, sprints, and task timelines.
             </p>
           </div>
-          {workspaces.length > 0 && !loading && (
+          {projects.length > 0 && !loading && (
             <div className="relative w-full md:w-72">
               <Search className="w-4.5 h-4.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#5E6C84]" />
               <input
                 type="text"
-                placeholder="Search workspaces..."
+                placeholder="Search projects..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 text-xs bg-white border border-[#DFE1E6] rounded-[3px] focus:outline-none focus:border-[#0052CC] focus:ring-1 focus:ring-[#0052CC] transition-all shadow-sm"
@@ -148,47 +147,47 @@ export default function WorkspacesDashboardPage() {
               </div>
             ))}
           </div>
-        ) : workspaces.length === 0 ? (
+        ) : projects.length === 0 ? (
           /* Empty Onboarding State */
           <EmptyState
             title="Welcome to Cadence"
-            description="Organize projects, boards, and team workflows in dedicated workspaces. Get started by creating your very first workspace."
+            description="Organize projects, boards, and team workflows in dedicated projects. Get started by creating your very first project."
             icon={<Briefcase className="w-6 h-6" />}
             action={
               <Button
                 onClick={() => setShowCreateModal(true)}
                 className="w-full bg-[#0052CC] hover:bg-[#0747A6] text-white text-xs font-semibold rounded-[3px] py-2"
               >
-                Create Workspace
+                Create Project
               </Button>
             }
           />
         ) : (
-          /* Grid of Workspaces */
-          filteredWorkspaces.length === 0 ? (
+          /* Grid of Projects */
+          filteredProjects.length === 0 ? (
             <EmptyState
-              title="No matching workspaces found"
-              description="We couldn't find any workspaces matching your search query. Try checking the spelling or clear the search input."
+              title="No matching projects found"
+              description="We couldn't find any projects matching your search query. Try checking the spelling or clear the search input."
               icon={<span className="text-lg">🔍</span>}
               iconBgClass="bg-[#F4F5F7] text-[#5E6C84]"
             />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredWorkspaces.map((ws) => (
+              {filteredProjects.map((p) => (
                 <div
-                  key={ws.id}
-                  onClick={() => router.push(`/workspaces/${ws.id}`)}
+                  key={p.id}
+                  onClick={() => router.push(`/projects/${p.id}`)}
                   className="bg-white border border-[#DFE1E6] rounded-[4px] p-5 hover:border-[#0052CC] hover:shadow-md transition-all flex flex-col justify-between min-h-[170px] relative group cursor-pointer"
                 >
                   {/* Top: Info */}
                   <div>
                     <div className="flex items-start justify-between">
                       <div className="w-9 h-9 bg-[#0052CC] text-white font-bold text-sm rounded-[3px] flex items-center justify-center shadow-sm">
-                        {ws.name.charAt(0).toUpperCase()}
+                        {p.name.charAt(0).toUpperCase()}
                       </div>
                       
                       {/* Owner actions bar: Visible on hover */}
-                      {ws.role === "OWNER" && (
+                      {p.role === "OWNER" && (
                         <div className="opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1.5 absolute top-4 right-4 bg-white pl-2">
                           <TooltipProvider>
                             <Tooltip>
@@ -196,12 +195,12 @@ export default function WorkspacesDashboardPage() {
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    setSelectedWorkspace(ws);
+                                    setSelectedProject(p);
                                     setShowEditModal(true);
                                   }}
-                                  disabled={ws.status === "INACTIVE"}
+                                  disabled={p.status === "INACTIVE"}
                                   className={`p-1 rounded-[3px] transition-colors ${
-                                    ws.status === "INACTIVE"
+                                    p.status === "INACTIVE"
                                       ? "opacity-35 cursor-not-allowed text-[#5E6C84]"
                                       : "p-1 hover:bg-[#EBECF0] text-[#5E6C84] hover:text-[#172B4D]"
                                   }`}
@@ -210,8 +209,8 @@ export default function WorkspacesDashboardPage() {
                                 </button>
                               </TooltipTrigger>
                               <TooltipContent className="bg-foreground text-background">
-                                {ws.status === "INACTIVE"
-                                  ? "Activate workspace to edit settings"
+                                {p.status === "INACTIVE"
+                                  ? "Activate project to edit settings"
                                   : "Edit settings"}
                               </TooltipContent>
                             </Tooltip>
@@ -221,16 +220,16 @@ export default function WorkspacesDashboardPage() {
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    setSelectedWorkspace(ws);
+                                    setSelectedProject(p);
                                     setShowDeleteModal(true);
                                   }}
                                   className={`p-1 rounded-[3px] transition-colors ${
-                                    ws.status === "INACTIVE"
+                                    p.status === "INACTIVE"
                                       ? "hover:bg-green-50 text-green-600 hover:text-green-800"
                                       : "hover:bg-red-50 text-red-500 hover:text-red-700"
                                   }`}
                                 >
-                                  {ws.status === "INACTIVE" ? (
+                                  {p.status === "INACTIVE" ? (
                                     <Plus className="w-3.5 h-3.5" />
                                   ) : (
                                     <Trash className="w-3.5 h-3.5" />
@@ -238,9 +237,9 @@ export default function WorkspacesDashboardPage() {
                                 </button>
                               </TooltipTrigger>
                               <TooltipContent className="bg-foreground text-background">
-                                {ws.status === "INACTIVE"
-                                  ? "Activate workspace"
-                                  : "Deactivate workspace"}
+                                {p.status === "INACTIVE"
+                                  ? "Activate project"
+                                  : "Deactivate project"}
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -249,13 +248,13 @@ export default function WorkspacesDashboardPage() {
                     </div>
 
                     <h3 className="text-sm font-bold text-[#172B4D] mt-3 group-hover:text-[#0052CC] transition-colors truncate">
-                      {ws.name}
+                      {p.name}
                     </h3>
                     <p className="text-[10px] text-[#5E6C84] mt-0.5 font-normal uppercase tracking-wider">
-                      {ws.workspaceType || "General Workspace"}
+                      {p.projectType || "General Project"}
                     </p>
                     <p className="text-xs text-[#5E6C84] mt-3 line-clamp-2 leading-relaxed">
-                      {ws.description || "No description provided."}
+                      {p.description || "No description provided."}
                     </p>
                   </div>
 
@@ -264,16 +263,16 @@ export default function WorkspacesDashboardPage() {
                     <span
                       className="text-xs text-[#0052CC] font-semibold hover:underline hover:text-[#0747A6]"
                     >
-                      Enter Workspace
+                      Enter Project
                     </span>
                     <div className="flex items-center space-x-1.5">
-                      {ws.status === "INACTIVE" && (
+                      {p.status === "INACTIVE" && (
                         <span className="text-[9px] font-bold text-red-700 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded">
                           INACTIVE
                         </span>
                       )}
                       <span className="text-[9px] font-mono text-[#5E6C84] bg-[#FAFBFC] px-1.5 py-0.5 rounded border border-[#DFE1E6]">
-                        {ws.role}
+                        {p.role}
                       </span>
                     </div>
                   </div>
@@ -285,24 +284,24 @@ export default function WorkspacesDashboardPage() {
       </main>
 
       {/* ── MODALS (Modular Shared Components) ─────────────────────────────── */}
-      <CreateWorkspaceModal
+      <CreateProjectModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
-        onCreateSuccess={(newWs: any) => {
-          fetchWorkspaces();
-          router.push(`/workspaces/${newWs.id}`);
+        onCreateSuccess={(newProj: any) => {
+          fetchProjects();
+          router.push(`/projects/${newProj.id}`);
         }}
       />
 
-      <EditWorkspaceModal
+      <EditProjectModal
         isOpen={showEditModal}
         onClose={() => {
           setShowEditModal(false);
-          setSelectedWorkspace(null);
+          setSelectedProject(null);
         }}
-        workspace={selectedWorkspace}
+        project={selectedProject}
         onUpdateSuccess={() => {
-          fetchWorkspaces();
+          fetchProjects();
         }}
       />
 
@@ -310,24 +309,24 @@ export default function WorkspacesDashboardPage() {
         isOpen={showDeleteModal}
         onClose={() => {
           setShowDeleteModal(false);
-          setSelectedWorkspace(null);
+          setSelectedProject(null);
         }}
-        title={selectedWorkspace?.status === "INACTIVE" ? "Activate Workspace?" : "Deactivate Workspace?"}
-        confirmText={selectedWorkspace?.status === "INACTIVE" ? "Activate Workspace" : "Deactivate Workspace"}
-        variant={selectedWorkspace?.status === "INACTIVE" ? "default" : "danger"}
+        title={selectedProject?.status === "INACTIVE" ? "Activate Project?" : "Deactivate Project?"}
+        confirmText={selectedProject?.status === "INACTIVE" ? "Activate Project" : "Deactivate Project"}
+        variant={selectedProject?.status === "INACTIVE" ? "default" : "danger"}
         isLoading={isDeleting}
         description={
           <div className="space-y-3 text-left">
             <p>
-              {selectedWorkspace?.status === "INACTIVE" ? (
+              {selectedProject?.status === "INACTIVE" ? (
                 <>
-                  Are you sure you want to activate the workspace{" "}
-                  <strong className="text-[#172B4D]">"{selectedWorkspace?.name}"</strong>? This will restore edit permissions and enable project modifications.
+                  Are you sure you want to activate the project{" "}
+                  <strong className="text-[#172B4D]">"{selectedProject?.name}"</strong>? This will restore edit permissions and enable project modifications.
                 </>
               ) : (
                 <>
-                  Are you sure you want to deactivate the workspace{" "}
-                  <strong className="text-[#172B4D]">"{selectedWorkspace?.name}"</strong>? This will switch the workspace and all projects inside it to view-only mode.
+                  Are you sure you want to deactivate the project{" "}
+                  <strong className="text-[#172B4D]">"{selectedProject?.name}"</strong>? This will switch the project and all boards inside it to view-only mode.
                 </>
               )}
             </p>
@@ -338,9 +337,9 @@ export default function WorkspacesDashboardPage() {
             setIsDeleting(true);
             const token = await getToken();
             if (!token) return;
-            const newStatus = selectedWorkspace.status === "INACTIVE" ? "ACTIVE" : "INACTIVE";
+            const newStatus = selectedProject.status === "INACTIVE" ? "ACTIVE" : "INACTIVE";
             const res = await fetch(
-              `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/workspaces/${selectedWorkspace.id}`,
+              `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects/${selectedProject.id}`,
               {
                 method: "PATCH",
                 headers: {
@@ -353,14 +352,14 @@ export default function WorkspacesDashboardPage() {
 
             if (res.ok) {
               setShowDeleteModal(false);
-              setSelectedWorkspace(null);
-              fetchWorkspaces();
+              setSelectedProject(null);
+              fetchProjects();
             } else {
               const err = await res.json();
-              alert(err.error || "Failed to update workspace status");
+              alert(err.error || "Failed to update project status");
             }
           } catch (err) {
-            console.error("Error updating workspace status:", err);
+            console.error("Error updating project status:", err);
           } finally {
             setIsDeleting(false);
           }

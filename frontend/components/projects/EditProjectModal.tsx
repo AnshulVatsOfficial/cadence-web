@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import CustomDialog from "../shared/CustomDialog";
 import { Field, FieldLabel, FieldError } from "../ui/field";
 import { Button } from "../ui/button";
@@ -19,56 +20,36 @@ import {
 } from "../ui/select";
 
 // Define the client-side validation schema using Zod
-const workspaceSchema = z.object({
+const projectSchema = z.object({
   name: z
     .string()
-    .min(3, "Workspace name must be at least 3 characters")
-    .max(50, "Workspace name cannot exceed 50 characters")
+    .min(3, "Project name must be at least 3 characters")
+    .max(50, "Project name cannot exceed 50 characters")
     .trim(),
-  workspaceType: z.string().min(1, "Workspace type is required"),
+  projectType: z.string().min(1, "Project type is required"),
   description: z
     .string()
     .max(200, "Description cannot exceed 200 characters")
     .optional()
     .or(z.literal("")),
+  status: z.enum(["ACTIVE", "ON_HOLD", "COMPLETED", "ARCHIVED", "INACTIVE"]),
 });
 
-type FormValues = z.infer<typeof workspaceSchema>;
+type FormValues = z.infer<typeof projectSchema>;
 
-// Custom resolver that integrates React Hook Form directly with Zod
-const zodResolver = (values: FormValues) => {
-  const result = workspaceSchema.safeParse(values);
-  if (result.success) {
-    return { values: result.data, errors: {} };
-  }
-
-  const errors = result.error.issues.reduce((acc: any, current) => {
-    const fieldName = current.path[0];
-    if (fieldName) {
-      acc[fieldName] = {
-        type: current.code,
-        message: current.message,
-      };
-    }
-    return acc;
-  }, {});
-
-  return { values: {}, errors };
-};
-
-interface EditWorkspaceModalProps {
+interface EditProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
-  workspace: any;
-  onUpdateSuccess: (updatedWorkspace: any) => void;
+  project: any;
+  onUpdateSuccess: (updatedProject: any) => void;
 }
 
-export default function EditWorkspaceModal({
+export default function EditProjectModal({
   isOpen,
   onClose,
-  workspace,
+  project,
   onUpdateSuccess,
-}: EditWorkspaceModalProps) {
+}: EditProjectModalProps) {
   const { getToken } = useAuth();
   const [apiError, setApiError] = useState<string | null>(null);
 
@@ -79,27 +60,30 @@ export default function EditWorkspaceModal({
     formState: { errors, isSubmitting },
     reset,
   } = useForm<FormValues>({
-    resolver: zodResolver,
+    resolver: zodResolver(projectSchema),
     defaultValues: {
       name: "",
-      workspaceType: "Software Development",
+      projectType: "Software Development",
       description: "",
+      status: "ACTIVE",
     },
+    mode: "onChange"
   });
 
-  // Sync state with selected workspace details when it changes
+  // Sync state with selected project details when it changes
   useEffect(() => {
-    if (workspace) {
+    if (project) {
       reset({
-        name: workspace.name || "",
-        workspaceType: workspace.workspaceType || "Software Development",
-        description: workspace.description || "",
+        name: project.name || "",
+        projectType: project.projectType || "Software Development",
+        description: project.description || "",
+        status: project.status || "ACTIVE",
       });
       setApiError(null);
     }
-  }, [workspace, reset]);
+  }, [project, reset]);
 
-  if (!workspace) return null;
+  if (!project) return null;
 
   const onSubmit = async (data: FormValues) => {
     setApiError(null);
@@ -112,7 +96,7 @@ export default function EditWorkspaceModal({
       }
 
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/workspaces/${workspace.id}`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects/${project.id}`,
         {
           method: "PATCH",
           headers: {
@@ -129,7 +113,7 @@ export default function EditWorkspaceModal({
         onClose();
       } else {
         const err = await res.json();
-        setApiError(err.error || "Failed to update workspace.");
+        setApiError(err.error || "Failed to update project.");
       }
     } catch (err: any) {
       setApiError(err.message || "An unexpected error occurred.");
@@ -140,8 +124,8 @@ export default function EditWorkspaceModal({
     <CustomDialog
       isOpen={isOpen}
       onClose={onClose}
-      title="Edit Workspace Settings"
-      description="Update your workspace type, metadata, and descriptive details."
+      title="Edit Project Settings"
+      description="Update your project type, metadata, status, and descriptive details."
     >
       {apiError && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-xs mb-4">
@@ -152,7 +136,7 @@ export default function EditWorkspaceModal({
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
         <Field data-invalid={errors.name ? "true" : undefined}>
           <FieldLabel className="text-[11px] font-bold text-[#5E6C84] uppercase tracking-wider">
-            Workspace Name <span className="text-[#DE350B]">*</span>
+            Project Name <span className="text-[#DE350B]">*</span>
           </FieldLabel>
           <Input
             type="text"
@@ -162,12 +146,12 @@ export default function EditWorkspaceModal({
           {errors.name && <FieldError className="text-[10px] text-[#DE350B] font-semibold mt-1">{errors.name.message}</FieldError>}
         </Field>
 
-        <Field data-invalid={errors.workspaceType ? "true" : undefined}>
+        <Field data-invalid={errors.projectType ? "true" : undefined}>
           <FieldLabel className="text-[11px] font-bold text-[#5E6C84] uppercase tracking-wider">
-            Workspace Type
+            Project Type
           </FieldLabel>
           <Controller
-            name="workspaceType"
+            name="projectType"
             control={control}
             render={({ field }) => (
               <Select onValueChange={field.onChange} value={field.value}>
@@ -183,9 +167,38 @@ export default function EditWorkspaceModal({
               </Select>
             )}
           />
-          {errors.workspaceType && (
+          {errors.projectType && (
             <FieldError className="text-[10px] text-[#DE350B] font-semibold mt-1">
-              {errors.workspaceType.message}
+              {errors.projectType.message}
+            </FieldError>
+          )}
+        </Field>
+
+        <Field data-invalid={errors.status ? "true" : undefined}>
+          <FieldLabel className="text-[11px] font-bold text-[#5E6C84] uppercase tracking-wider">
+            Status
+          </FieldLabel>
+          <Controller
+            name="status"
+            control={control}
+            render={({ field }) => (
+              <Select onValueChange={field.onChange} value={field.value}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent className="bg-white border border-[#DFE1E6]">
+                  <SelectItem className="text-xs hover:bg-[#F4F5F7]" value="ACTIVE">Active</SelectItem>
+                  <SelectItem className="text-xs hover:bg-[#F4F5F7]" value="ON_HOLD">On Hold</SelectItem>
+                  <SelectItem className="text-xs hover:bg-[#F4F5F7]" value="COMPLETED">Completed</SelectItem>
+                  <SelectItem className="text-xs hover:bg-[#F4F5F7]" value="ARCHIVED">Archived</SelectItem>
+                  <SelectItem className="text-xs hover:bg-[#F4F5F7]" value="INACTIVE">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          />
+          {errors.status && (
+            <FieldError className="text-[10px] text-[#DE350B] font-semibold mt-1">
+              {errors.status.message}
             </FieldError>
           )}
         </Field>

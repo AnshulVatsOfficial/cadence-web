@@ -69,10 +69,10 @@ export default function Home() {
           ) : (
             <>
               <Link
-                href="/workspaces"
+                href="/projects"
                 className="text-xs font-bold text-[#0052CC] hover:text-[#0747A6] transition-colors mr-2 flex items-center"
               >
-                <span>Go to workspace</span>
+                <span>Go to project</span>
                 <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
               </Link>
               <UserButton />
@@ -90,7 +90,7 @@ export default function Home() {
         <div className="max-w-4xl text-center flex flex-col items-center">
           <div className="inline-flex items-center space-x-2 bg-[#DEEBFF] text-[#0052CC] text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full mb-6 shadow-sm">
             <Sparkles className="w-3 h-3 text-[#0052CC]" />
-            <span>Introducing Workspaces 2.0</span>
+            <span>Introducing Projects 2.0</span>
           </div>
 
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-[#172B4D] leading-[1.1] mb-6">
@@ -99,16 +99,16 @@ export default function Home() {
 
           <p className="max-w-2xl text-sm md:text-base text-[#5E6C84] leading-relaxed mb-8">
             Plan sprints, track task boards, and coordinate software releases. 
-            Bring engineering, product management, and design together in isolated, secure workspaces.
+            Bring engineering, product management, and design together in isolated, secure projects.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto justify-center mb-16">
             {isLoggedIn ? (
               <Link
-                href="/workspaces"
+                href="/projects"
                 className="flex h-11 items-center justify-center px-8 bg-[#0052CC] hover:bg-[#0747A6] text-white text-xs font-bold rounded-[3px] transition"
               >
-                Go to workspace
+                Go to project
               </Link>
             ) : (
               <>
@@ -138,7 +138,7 @@ export default function Home() {
               <span className="h-3 w-3 rounded-full bg-[#FFAB00]"></span>
               <span className="h-3 w-3 rounded-full bg-[#36B37E]"></span>
               <span className="text-[10px] text-[#5E6C84] pl-2 font-mono select-none">
-                cadence://workspaces/engineering-sprint-board
+                cadence://projects/engineering-sprint-board
               </span>
             </div>
             <div className="flex items-center space-x-2">
@@ -153,7 +153,7 @@ export default function Home() {
             <div className="w-48 border-r border-[#DFE1E6] bg-[#FAFBFC] p-3 hidden sm:flex flex-col space-y-4">
               <div className="flex items-center space-x-2 bg-[#DEEBFF] p-1.5 rounded-[3px] border border-[#DEEBFF]">
                 <div className="w-5 h-5 bg-[#0052CC] rounded-[2px] flex items-center justify-center font-bold text-white text-[9px]">E</div>
-                <span className="text-[10px] font-bold truncate">Engineering Ws</span>
+                <span className="text-[10px] font-bold truncate">Engineering Project</span>
               </div>
               <div className="space-y-1">
                 <span className="text-[8px] font-bold text-[#5E6C84] tracking-wider uppercase block px-1">Planning</span>
@@ -172,7 +172,7 @@ export default function Home() {
             <div className="flex-1 flex flex-col min-w-0">
               <div className="p-4 border-b border-[#DFE1E6] flex items-center justify-between bg-[#FAFBFC]">
                 <div className="flex items-center space-x-2">
-                  <span className="text-xs font-bold text-[#172B4D]">Workspaces</span>
+                  <span className="text-xs font-bold text-[#172B4D]">Projects</span>
                   <span className="text-[#5E6C84] text-xs">/</span>
                   <span className="text-xs font-semibold text-[#0052CC]">Sprint Board</span>
                 </div>
@@ -324,12 +324,12 @@ export default function Home() {
                   <span className="text-[9px] font-bold bg-[#DEEBFF] text-[#0747A6] px-2 py-0.5 rounded-full uppercase tracking-wider">Roadmapping</span>
                   <h3 className="text-xl font-bold text-[#172B4D] tracking-tight">Define goals & align priorities</h3>
                   <p className="text-xs text-[#5E6C84] leading-relaxed">
-                    Plan long-term features, manage cross-functional workspace items, and define product milestones. Track backlog issues before allocating them to sprints.
+                    Plan long-term features, manage cross-functional project items, and define product milestones. Track backlog issues before allocating them to sprints.
                   </p>
                   <ul className="space-y-2 text-xs font-semibold text-[#172B4D]">
                     <li className="flex items-center"><CheckCircle2 className="w-4 h-4 text-[#0052CC] mr-2" /> Unified product backlogs</li>
                     <li className="flex items-center"><CheckCircle2 className="w-4 h-4 text-[#0052CC] mr-2" /> Priority categorizations</li>
-                    <li className="flex items-center"><CheckCircle2 className="w-4 h-4 text-[#0052CC] mr-2" /> Isolated workspaces</li>
+                    <li className="flex items-center"><CheckCircle2 className="w-4 h-4 text-[#0052CC] mr-2" /> Isolated projects</li>
                   </ul>
                 </div>
                 <div className="flex-1 w-full flex justify-center bg-white border border-[#DFE1E6] p-4 rounded shadow-sm">
@@ -356,7 +356,7 @@ export default function Home() {
                   <span className="text-[9px] font-bold bg-[#EAE6FF] text-[#403294] px-2 py-0.5 rounded-full uppercase tracking-wider">Creatives</span>
                   <h3 className="text-xl font-bold text-[#172B4D] tracking-tight">Streamline assets reviews</h3>
                   <p className="text-xs text-[#5E6C84] leading-relaxed">
-                    Collaborate on user experience updates, review interface mockups, and track design hand-offs. Keep copy assets and creative items organized in separate workspace buckets.
+                    Collaborate on user experience updates, review interface mockups, and track design hand-offs. Keep copy assets and creative items organized in separate project buckets.
                   </p>
                   <ul className="space-y-2 text-xs font-semibold text-[#172B4D]">
                     <li className="flex items-center"><CheckCircle2 className="w-4 h-4 text-[#403294] mr-2" /> Asset tags and categories</li>
@@ -408,9 +408,9 @@ export default function Home() {
               <div className="w-10 h-10 bg-[#EAE6FF] text-[#403294] rounded-full flex items-center justify-center">
                 <Layers className="w-5 h-5" />
               </div>
-              <h3 className="text-sm font-bold text-[#172B4D]">Workspace Isolation</h3>
+              <h3 className="text-sm font-bold text-[#172B4D]">Project Isolation</h3>
               <p className="text-xs text-[#5E6C84] leading-relaxed">
-                Keep project teams separate. Members and invitations are bounded to workspaces, keeping workspaces strictly isolated.
+                Keep project teams separate. Members and invitations are bounded to projects, keeping projects strictly isolated.
               </p>
             </div>
 
@@ -456,15 +456,15 @@ export default function Home() {
             Start organizing your sprints with Cadence today
           </h2>
           <p className="text-xs md:text-sm text-blue-100 leading-relaxed mb-8 max-w-lg mx-auto">
-            Free forever for up to 10 team members. Unlimited workspaces, sprint boards, and project logs.
+            Free forever for up to 10 team members. Unlimited projects, sprint boards, and project logs.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center w-full sm:w-auto">
             {isLoggedIn ? (
               <Link
-                href="/workspaces"
+                href="/projects"
                 className="bg-white hover:bg-gray-100 text-[#0052CC] text-xs font-bold px-8 py-3 rounded-[3px] shadow transition-colors flex items-center justify-center"
               >
-                <span>Go to workspace</span>
+                <span>Go to project</span>
                 <ArrowRight className="w-3.5 h-3.5 ml-2" />
               </Link>
             ) : (
@@ -496,7 +496,7 @@ export default function Home() {
             <h4 className="font-bold text-[#172B4D] uppercase tracking-wider text-[10px]">Product</h4>
             <ul className="space-y-2">
               <li className="hover:underline cursor-pointer">Kanban Boards</li>
-              <li className="hover:underline cursor-pointer">Workspaces</li>
+              <li className="hover:underline cursor-pointer">Projects</li>
               <li className="hover:underline cursor-pointer">SSO Integration</li>
               <li className="hover:underline cursor-pointer">Roadmaps</li>
             </ul>

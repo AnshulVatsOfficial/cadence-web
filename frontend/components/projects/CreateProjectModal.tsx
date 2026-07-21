@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import CustomDialog from "../shared/CustomDialog";
 import { Field, FieldLabel, FieldError } from "../ui/field";
 import { Button } from "../ui/button";
@@ -19,13 +20,13 @@ import {
 } from "../ui/select";
 
 // Define the client-side validation schema using Zod
-const workspaceSchema = z.object({
+const projectSchema = z.object({
   name: z
     .string()
-    .min(3, "Workspace name must be at least 3 characters")
-    .max(50, "Workspace name cannot exceed 50 characters")
+    .min(3, "Project name must be at least 3 characters")
+    .max(50, "Project name cannot exceed 50 characters")
     .trim(),
-  workspaceType: z.string().min(1, "Workspace type is required"),
+  projectType: z.string().min(1, "Project type is required"),
   description: z
     .string()
     .max(200, "Description cannot exceed 200 characters")
@@ -33,40 +34,19 @@ const workspaceSchema = z.object({
     .or(z.literal("")),
 });
 
-type FormValues = z.infer<typeof workspaceSchema>;
+type FormValues = z.infer<typeof projectSchema>;
 
-// Custom resolver that integrates React Hook Form directly with Zod
-const zodResolver = (values: FormValues) => {
-  const result = workspaceSchema.safeParse(values);
-  if (result.success) {
-    return { values: result.data, errors: {} };
-  }
-
-  const errors = result.error.issues.reduce((acc: any, current) => {
-    const fieldName = current.path[0];
-    if (fieldName) {
-      acc[fieldName] = {
-        type: current.code,
-        message: current.message,
-      };
-    }
-    return acc;
-  }, {});
-
-  return { values: {}, errors };
-};
-
-interface CreateWorkspaceModalProps {
+interface CreateProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreateSuccess: (newWorkspace: any) => void;
+  onCreateSuccess: (newProject: any) => void;
 }
 
-export default function CreateWorkspaceModal({
+export default function CreateProjectModal({
   isOpen,
   onClose,
   onCreateSuccess,
-}: CreateWorkspaceModalProps) {
+}: CreateProjectModalProps) {
   const { getToken } = useAuth();
   const [apiError, setApiError] = useState<string | null>(null);
 
@@ -77,12 +57,13 @@ export default function CreateWorkspaceModal({
     formState: { errors, isSubmitting },
     reset,
   } = useForm<FormValues>({
-    resolver: zodResolver,
+    resolver: zodResolver(projectSchema),
     defaultValues: {
       name: "",
-      workspaceType: "Software Development",
+      projectType: "Software Development",
       description: "",
     },
+    mode:"onChange"
   });
 
   const onSubmit = async (data: FormValues) => {
@@ -96,7 +77,7 @@ export default function CreateWorkspaceModal({
       }
 
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/workspaces`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects`,
         {
           method: "POST",
           headers: {
@@ -108,13 +89,13 @@ export default function CreateWorkspaceModal({
       );
 
       if (res.ok) {
-        const newWs = await res.json();
+        const newProj = await res.json();
         reset();
-        onCreateSuccess(newWs);
+        onCreateSuccess(newProj);
         onClose();
       } else {
         const err = await res.json();
-        setApiError(err.error || "Failed to create workspace.");
+        setApiError(err.error || "Failed to create project.");
       }
     } catch (err: any) {
       setApiError(err.message || "An unexpected error occurred.");
@@ -128,8 +109,8 @@ export default function CreateWorkspaceModal({
         reset();
         onClose();
       }}
-      title="Create Workspace"
-      description="Workspaces are where your team compiles sprints, active boards, and tasks."
+      title="Create Project"
+      description="Projects are where your team compiles sprints, active boards, and tasks."
     >
       {apiError && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-xs mb-4">
@@ -138,10 +119,9 @@ export default function CreateWorkspaceModal({
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
-        {/* Field controls invalid state automatically */}
         <Field data-invalid={errors.name ? "true" : undefined}>
           <FieldLabel className="text-[11px] font-bold text-[#5E6C84] uppercase tracking-wider">
-            Workspace Name <span className="text-[#DE350B]">*</span>
+            Project Name <span className="text-[#DE350B]">*</span>
           </FieldLabel>
           <Input
             type="text"
@@ -152,12 +132,12 @@ export default function CreateWorkspaceModal({
           {errors.name && <FieldError className="text-[10px] text-[#DE350B] font-semibold mt-1">{errors.name.message}</FieldError>}
         </Field>
 
-        <Field data-invalid={errors.workspaceType ? "true" : undefined}>
+        <Field data-invalid={errors.projectType ? "true" : undefined}>
           <FieldLabel className="text-[11px] font-bold text-[#5E6C84] uppercase tracking-wider">
-            Workspace Type
+            Project Type
           </FieldLabel>
           <Controller
-            name="workspaceType"
+            name="projectType"
             control={control}
             render={({ field }) => (
               <Select onValueChange={field.onChange} value={field.value}>
@@ -173,9 +153,9 @@ export default function CreateWorkspaceModal({
               </Select>
             )}
           />
-          {errors.workspaceType && (
+          {errors.projectType && (
             <FieldError className="text-[10px] text-[#DE350B] font-semibold mt-1">
-              {errors.workspaceType.message}
+              {errors.projectType.message}
             </FieldError>
           )}
         </Field>
@@ -185,7 +165,7 @@ export default function CreateWorkspaceModal({
             Description
           </FieldLabel>
           <Textarea
-            placeholder="Describe your workspace assets..."
+            placeholder="Describe your project assets..."
             aria-invalid={!!errors.description}
             {...register("description")}
           />

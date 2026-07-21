@@ -22,7 +22,7 @@ interface CustomAlertDialogProps {
   description: React.ReactNode;
   confirmText?: string;
   cancelText?: string;
-  variant?: "danger" | "warning";
+  variant?: "danger" | "warning" | "default";
   isLoading?: boolean;
 }
 
