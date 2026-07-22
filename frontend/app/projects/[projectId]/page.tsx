@@ -1,55 +1,28 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useProject, ProjectProvider } from "../../../components/projects/ProjectContext";
 import ProjectLayoutShell from "../../../components/projects/ProjectLayoutShell";
+import BoardColumn from "../../../components/projects/BoardColumn";
+import { useAuth } from "@clerk/nextjs";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Skeleton } from "../../../components/ui/skeleton";
 import { Badge } from "../../../components/ui/badge";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../../../components/ui/tooltip";
+import { Button } from "../../../components/ui/button";
+import { Input } from "../../../components/ui/input";
+import { Plus } from "lucide-react";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
-function renderPriorityIcon(priority: string) {
-  switch (priority.toUpperCase()) {
-    case "URGENT":
-      return (
-        <span className="text-[#DE350B] flex items-center">
-          <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-            <path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z" />
-          </svg>
-        </span>
-      );
-    case "HIGH":
-      return (
-        <span className="text-[#FF5630] flex items-center">
-          <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-            <path d="M4 15l1.41 1.41L11 10.83V20h2v-9.17l5.58 5.59L20 15l-8-8-8 8z" />
-          </svg>
-        </span>
-      );
-    case "MEDIUM":
-      return (
-        <span className="text-[#FFAB00] flex items-center">
-          <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-          </svg>
-        </span>
-      );
-    case "LOW":
-      return (
-        <span className="text-[#36B37E] flex items-center">
-          <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-            <path d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z" />
-          </svg>
-        </span>
-      );
-    default:
-      return null;
-  }
-}
+// Schema for adding a new column
+const addColumnSchema = z.object({
+  name: z
+    .string()
+    .min(2, "Column name must be at least 2 characters")
+    .max(50, "Column name cannot exceed 50 characters")
+    .trim(),
+});
 
 function getStatusBadgeStyles(status: string) {
   switch (status) {
@@ -68,25 +41,202 @@ function getStatusBadgeStyles(status: string) {
   }
 }
 
-function getColumnBadgeColor(stageName: string) {
-  const norm = stageName.toLowerCase();
-  if (norm.includes("todo") || norm.includes("to do")) {
-    return "bg-[#F4F5F7] text-[#172B4D]";
-  } else if (norm.includes("progress") || norm.includes("doing")) {
-    return "bg-[#DEEBFF] text-[#0747A6]";
-  } else if (norm.includes("review") || norm.includes("testing")) {
-    return "bg-[#EAE6FF] text-[#403294]";
-  } else if (norm.includes("done") || norm.includes("completed")) {
-    return "bg-green-50 text-green-700";
-  }
-  return "bg-gray-100 text-gray-800";
-}
-
 function ProjectBoardContent() {
-  const { projectDetails, loadingProjects } = useProject();
-  const [searchQuery, setSearchQuery] = useState("");
+  const { getToken } = useAuth();
+  const { projectDetails, loadingProjects, fetchProjectDetails } = useProject();
 
-  if (loadingProjects) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [localStages, setLocalStages] = useState<any[]>([]);
+  const [localTasks, setLocalTasks] = useState<any[]>([]);
+  const [showAddColumn, setShowAddColumn] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  const userRole = projectDetails?.role;
+  const isWritable = projectDetails?.status !== "INACTIVE";
+  const isAdminOrOwner = userRole === "OWNER" || userRole === "ADMIN";
+
+  // Form for adding a new column
+  const {
+    register: registerCol,
+    handleSubmit: handleColSubmit,
+    formState: { errors: colErrors, isSubmitting: isColSubmitting },
+    reset: resetCol,
+  } = useForm({
+    resolver: zodResolver(addColumnSchema),
+    defaultValues: { name: "" },
+  });
+
+  // Client hydration check
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Keep local stages and tasks synchronized with project details
+  useEffect(() => {
+    if (projectDetails) {
+      setLocalStages(projectDetails.stages || []);
+      setLocalTasks(projectDetails.tasks || []);
+    }
+  }, [projectDetails]);
+
+  // Handle Drag-and-Drop End via library
+  const handleDragEnd = async (result: any) => {
+    const { destination, source, draggableId, type } = result;
+
+    if (!destination) return;
+
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    ) {
+      return;
+    }
+
+    // 1. Column Drag-and-Drop Reordering
+    if (type === "COLUMN") {
+      const newStages = Array.from(localStages);
+      const [removed] = newStages.splice(source.index, 1);
+      newStages.splice(destination.index, 0, removed);
+
+      setLocalStages(newStages);
+
+      try {
+        const token = await getToken();
+        if (!token) return;
+
+        const reorderPayload = newStages.map((stage, idx) => ({
+          id: stage.id,
+          order: idx,
+        }));
+
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects/${projectDetails.id}/stages/reorder`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ stages: reorderPayload }),
+          }
+        );
+
+        if (res.ok) {
+          await fetchProjectDetails();
+        } else {
+          const err = await res.json();
+          alert(err.error || "Failed to save columns order.");
+          setLocalStages(projectDetails.stages || []);
+        }
+      } catch (err) {
+        console.error(err);
+        setLocalStages(projectDetails.stages || []);
+      }
+      return;
+    }
+
+    // 2. Task Drag-and-Drop Reordering/Transitioning
+    if (type === "TASK") {
+      const sourceColumnId = source.droppableId;
+      const destColumnId = destination.droppableId;
+
+      const draggedTask = localTasks.find((t) => t.id === draggableId);
+      if (!draggedTask) return;
+
+      // Optimistic update
+      const updatedTasks = Array.from(localTasks);
+      const modifiedTask = { ...draggedTask, stageId: destColumnId };
+
+      // Remove from old index
+      const oldIndex = updatedTasks.findIndex((t) => t.id === draggableId);
+      if (oldIndex !== -1) {
+        updatedTasks.splice(oldIndex, 1);
+      }
+
+      // Insert at new index relative to other tasks in the destination column
+      const destTasks = updatedTasks.filter((t) => t.stageId === destColumnId);
+      
+      let globalInsertIndex = updatedTasks.length;
+      if (destination.index < destTasks.length) {
+        const targetTaskAtDest = destTasks[destination.index];
+        globalInsertIndex = updatedTasks.findIndex((t) => t.id === targetTaskAtDest.id);
+      } else {
+        if (destTasks.length > 0) {
+          const lastTaskAtDest = destTasks[destTasks.length - 1];
+          globalInsertIndex = updatedTasks.findIndex((t) => t.id === lastTaskAtDest.id) + 1;
+        } else {
+          globalInsertIndex = updatedTasks.length;
+        }
+      }
+
+      updatedTasks.splice(globalInsertIndex, 0, modifiedTask);
+      setLocalTasks(updatedTasks);
+
+      try {
+        const token = await getToken();
+        if (!token) return;
+
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects/${projectDetails.id}/tasks/${draggableId}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ stageId: destColumnId }),
+          }
+        );
+
+        if (res.ok) {
+          await fetchProjectDetails();
+        } else {
+          const err = await res.json();
+          alert(err.error || "Failed to update task column.");
+          setLocalTasks(projectDetails.tasks || []);
+        }
+      } catch (err) {
+        console.error(err);
+        setLocalTasks(projectDetails.tasks || []);
+      }
+    }
+  };
+
+  // Add new column
+  const onAddColumn = async (data: { name: string }) => {
+    if (!isWritable || !isAdminOrOwner) return;
+    try {
+      const token = await getToken();
+      if (!token) return;
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects/${projectDetails.id}/stages`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ name: data.name }),
+        }
+      );
+
+      if (res.ok) {
+        resetCol();
+        setShowAddColumn(false);
+        await fetchProjectDetails();
+      } else {
+        const err = await res.json();
+        alert(err.error || "Failed to create column.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error occurred creating column.");
+    }
+  };
+
+  // Static Fallback & Server-side render safety
+  if (loadingProjects || !mounted) {
     return (
       <ProjectLayoutShell searchQuery={searchQuery} setSearchQuery={setSearchQuery}>
         <div className="flex-grow flex flex-col overflow-hidden bg-white h-full">
@@ -141,9 +291,6 @@ function ProjectBoardContent() {
     );
   }
 
-  const stages = projectDetails?.stages || [];
-  const tasks = projectDetails?.tasks || [];
-
   return (
     <ProjectLayoutShell searchQuery={searchQuery} setSearchQuery={setSearchQuery}>
       <div className="flex flex-col h-full overflow-hidden">
@@ -167,109 +314,102 @@ function ProjectBoardContent() {
           )}
         </section>
 
-        {/* Kanban Board Grid */}
-        <div className="flex-grow overflow-x-auto p-6 bg-white">
-          <div className="flex space-x-4 h-full min-w-[900px]">
-            {stages.map((stage: any) => {
-              const stageTasks = tasks.filter((t: any) => t.stageId === stage.id);
-              const filteredTasks = stageTasks.filter(
-                (task: any) =>
-                  task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                  task.id.toLowerCase().includes(searchQuery.toLowerCase())
-              );
-
-              return (
+        {/* DragDropContext wrapping the columns grid */}
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <div className="flex-grow overflow-x-auto p-6 bg-white h-full">
+            <Droppable droppableId="board" type="COLUMN" direction="horizontal">
+              {(provided) => (
                 <div
-                  key={stage.id}
-                  className="flex flex-col w-72 bg-[#F4F5F7] rounded-[4px] border border-[#DFE1E6] max-h-full"
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                  className="flex space-x-4 h-full items-start min-w-[900px] pb-6"
                 >
-                  {/* Column Header */}
-                  <div className="flex items-center justify-between px-3 py-3 select-none flex-shrink-0">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-[11px] font-bold tracking-wider text-[#5E6C84]">
-                        {stage.name.toUpperCase()}
-                      </span>
-                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${getColumnBadgeColor(stage.name)}`}>
-                        {filteredTasks.length}
-                      </span>
-                    </div>
-                  </div>
+                  {localStages.map((stage: any, idx: number) => {
+                    const stageTasks = localTasks.filter((t: any) => t.stageId === stage.id);
+                    const filteredTasks = stageTasks.filter(
+                      (task: any) =>
+                        task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        task.id.toLowerCase().includes(searchQuery.toLowerCase())
+                    );
 
-                  {/* Task List container */}
-                  <div className="flex-1 overflow-y-auto px-2 pb-3 space-y-2">
-                    {filteredTasks.map((task: any) => {
-                      // Grab initials of the first assignee, if any
-                      const mainAssignee = task.assignees?.[0]?.user;
-                      const assigneeInitials = mainAssignee?.name
-                        ? mainAssignee.name
-                            .split(" ")
-                            .map((n: string) => n[0])
-                            .join("")
-                            .toUpperCase()
-                        : "U";
-
-                      return (
-                        <div
-                          key={task.id}
-                          className="bg-white border border-[#DFE1E6] rounded-[3px] p-3 shadow-sm hover:border-[#4c86e0] transition-all cursor-pointer group"
-                        >
-                          <h4 className="text-xs font-semibold text-[#172B4D] leading-relaxed mb-1.5 group-hover:text-[#0052CC] transition-colors">
-                            {task.title}
-                          </h4>
-                          {task.description && (
-                            <p className="text-[11px] text-[#5E6C84] line-clamp-2 mb-3">
-                              {typeof task.description === "string"
-                                ? task.description
-                                : JSON.stringify(task.description)}
-                            </p>
-                          )}
-
-                          {/* Footer details: Key, Priority, Assignee */}
-                          <div className="flex items-center justify-between border-t border-[#F4F5F7] pt-2">
-                            <span className="text-[10px] font-bold text-[#5E6C84] tracking-tight">
-                              {task.id}
-                            </span>
-                            <div className="flex items-center space-x-2">
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <span>{renderPriorityIcon(task.priority)}</span>
-                                  </TooltipTrigger>
-                                  <TooltipContent className="bg-foreground text-background">
-                                    {task.priority.charAt(0).toUpperCase() + task.priority.slice(1).toLowerCase()} Priority
-                                  </TooltipContent>
-                                </Tooltip>
-
-                                {mainAssignee && (
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <div className="h-5 w-5 rounded-full bg-[#0052CC] text-white text-[9px] font-bold flex items-center justify-center cursor-help">
-                                        {assigneeInitials}
-                                      </div>
-                                    </TooltipTrigger>
-                                    <TooltipContent className="bg-foreground text-background">
-                                      Assignee: {mainAssignee.name}
-                                    </TooltipContent>
-                                  </Tooltip>
-                                )}
-                              </TooltipProvider>
-                            </div>
+                    return (
+                      <Draggable
+                        key={stage.id}
+                        draggableId={stage.id}
+                        index={idx}
+                        isDragDisabled={!isAdminOrOwner || !isWritable}
+                      >
+                        {(draggableProvided) => (
+                          <div
+                            ref={draggableProvided.innerRef}
+                            {...draggableProvided.draggableProps}
+                          >
+                            <BoardColumn
+                              stage={stage}
+                              tasks={filteredTasks}
+                              dragHandleProps={draggableProvided.dragHandleProps}
+                              index={idx}
+                            />
                           </div>
-                        </div>
-                      );
-                    })}
+                        )}
+                      </Draggable>
+                    );
+                  })}
+                  {provided.placeholder}
 
-                    {filteredTasks.length === 0 && (
-                      <div className="text-center py-8 text-xs text-[#5E6C84] italic select-none">
-                        No issues found
-                      </div>
-                    )}
-                  </div>
+                  {/* Add Column Card Button */}
+                  {isWritable && isAdminOrOwner && (
+                    <div className="w-72 flex-shrink-0 bg-[#F4F5F7]/65 border border-dashed border-[#DFE1E6] rounded-[4px] p-3 transition-all hover:bg-[#F4F5F7] select-none">
+                      {showAddColumn ? (
+                        <form onSubmit={handleColSubmit(onAddColumn)} className="space-y-2">
+                          <Input
+                            {...registerCol("name")}
+                            placeholder="Column name (e.g. In Review)"
+                            autoFocus
+                            className="text-xs bg-white border-[#DFE1E6] rounded-[3px] focus-visible:ring-1 focus-visible:ring-[#0052CC]"
+                          />
+                          {colErrors.name && (
+                            <span className="text-[10px] text-[#DE350B] font-semibold block">
+                              {colErrors.name.message}
+                            </span>
+                          )}
+                          <div className="flex items-center space-x-1.5">
+                            <Button
+                              type="submit"
+                              disabled={isColSubmitting}
+                              className="bg-[#0052CC] hover:bg-[#0747A6] text-white text-[10px] h-7 px-3 rounded-[3px]"
+                            >
+                              {isColSubmitting ? "Adding..." : "Add Column"}
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              onClick={() => {
+                                setShowAddColumn(false);
+                                resetCol();
+                              }}
+                              className="text-[#5E6C84] hover:bg-[#EBECF0] text-[10px] h-7 px-2 rounded-[3px]"
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </form>
+                      ) : (
+                        <button
+                          onClick={() => setShowAddColumn(true)}
+                          className="w-full flex items-center space-x-1.5 text-xs text-[#5E6C84] hover:text-[#172B4D] py-1.5 px-2 rounded transition-colors text-left"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Add Column</span>
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
-              );
-            })}
+              )}
+            </Droppable>
           </div>
-        </div>
+        </DragDropContext>
       </div>
     </ProjectLayoutShell>
   );
