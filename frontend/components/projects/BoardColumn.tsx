@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useProject } from "./ProjectContext";
-import { useAuth } from "@clerk/nextjs";
+import { api } from "@/lib/api";
 import { Trash2, Plus, X, Edit2, Check } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -59,7 +59,6 @@ export default function BoardColumn({
   dragHandleProps,
   index,
 }: BoardColumnProps) {
-  const { getToken } = useAuth();
   const { projectDetails, fetchProjectDetails } = useProject();
 
   const userRole = projectDetails?.role;
@@ -103,31 +102,14 @@ export default function BoardColumn({
     if (!isAdminOrOwner || !isWritable) return;
     try {
       setIsRenaming(true);
-      const token = await getToken();
-      if (!token) return;
-
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects/${projectDetails.id}/stages/${stage.id}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ name: data.name }),
-        }
-      );
-
-      if (res.ok) {
-        setIsEditingName(false);
-        await fetchProjectDetails();
-      } else {
-        const err = await res.json();
-        alert(err.error || "Failed to rename column.");
-      }
+      await api.patch(`/projects/${projectDetails.id}/stages/${stage.id}`, {
+        name: data.name,
+      });
+      setIsEditingName(false);
+      await fetchProjectDetails();
     } catch (err: any) {
       console.error(err);
-      alert("Error occurred renaming column.");
+      alert(err?.response?.data?.error || "Error occurred renaming column.");
     } finally {
       setIsRenaming(false);
     }
@@ -138,29 +120,12 @@ export default function BoardColumn({
     if (!isAdminOrOwner || !isWritable) return;
     try {
       setIsDeletingColumn(true);
-      const token = await getToken();
-      if (!token) return;
-
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects/${projectDetails.id}/stages/${stage.id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (res.ok) {
-        setShowDeleteColumnConfirm(false);
-        await fetchProjectDetails();
-      } else {
-        const err = await res.json();
-        alert(err.error || "Failed to delete column.");
-      }
-    } catch (err) {
+      await api.delete(`/projects/${projectDetails.id}/stages/${stage.id}`);
+      setShowDeleteColumnConfirm(false);
+      await fetchProjectDetails();
+    } catch (err: any) {
       console.error(err);
-      alert("Error deleting column.");
+      alert(err?.response?.data?.error || "Error deleting column.");
     } finally {
       setIsDeletingColumn(false);
     }
@@ -171,29 +136,12 @@ export default function BoardColumn({
     if (!taskToDelete || !isWritable) return;
     try {
       setIsDeletingTask(true);
-      const token = await getToken();
-      if (!token) return;
-
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects/${projectDetails.id}/tasks/${taskToDelete.id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (res.ok) {
-        setTaskToDelete(null);
-        await fetchProjectDetails();
-      } else {
-        const err = await res.json();
-        alert(err.error || "Failed to delete task.");
-      }
-    } catch (err) {
+      await api.delete(`/projects/${projectDetails.id}/tasks/${taskToDelete.id}`);
+      setTaskToDelete(null);
+      await fetchProjectDetails();
+    } catch (err: any) {
       console.error(err);
-      alert("Error deleting task.");
+      alert(err?.response?.data?.error || "Error deleting task.");
     } finally {
       setIsDeletingTask(false);
     }
@@ -203,35 +151,16 @@ export default function BoardColumn({
   const onAddTask = async (data: { title: string }) => {
     if (!isWritable) return;
     try {
-      const token = await getToken();
-      if (!token) return;
-
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects/${projectDetails.id}/tasks`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            title: data.title,
-            stageId: stage.id,
-          }),
-        }
-      );
-
-      if (res.ok) {
-        resetTask();
-        setShowAddTask(false);
-        await fetchProjectDetails();
-      } else {
-        const err = await res.json();
-        alert(err.error || "Failed to create task.");
-      }
-    } catch (err) {
+      await api.post(`/projects/${projectDetails.id}/tasks`, {
+        title: data.title,
+        stageId: stage.id,
+      });
+      resetTask();
+      setShowAddTask(false);
+      await fetchProjectDetails();
+    } catch (err: any) {
       console.error(err);
-      alert("Error creating task.");
+      alert(err?.response?.data?.error || "Error creating task.");
     }
   };
 

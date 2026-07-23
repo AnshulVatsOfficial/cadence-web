@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { UserButton, useUser, useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import {
   Plus,
@@ -9,7 +8,10 @@ import {
   Trash,
   Edit2,
   Briefcase,
+  LogOut,
 } from "lucide-react";
+import { useAuth } from "@/lib/authContext";
+import { api } from "@/lib/api";
 import CreateProjectModal from "../../components/projects/CreateProjectModal";
 import EditProjectModal from "../../components/projects/EditProjectModal";
 import CustomAlertDialog from "../../components/shared/CustomAlertDialog";
@@ -17,15 +19,14 @@ import EmptyState from "../../components/shared/EmptyState";
 import { Button } from "../../components/ui/button";
 import { Skeleton } from "../../components/ui/skeleton";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../../components/ui/tooltip";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../../components/ui/dropdown-menu";
 
 export default function ProjectsDashboardPage() {
-  const { user, isLoaded } = useUser();
-  const { getToken } = useAuth();
+  const { user, logout, isLoading: authLoading } = useAuth();
   const router = useRouter();
 
   // Projects states
@@ -44,17 +45,8 @@ export default function ProjectsDashboardPage() {
   const fetchProjects = async () => {
     try {
       setLoading(true);
-      const token = await getToken();
-      if (!token) return;
-
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      if (res.ok) {
-        const data = await res.json();
-        setProjects(data);
-      }
+      const res = await api.get("/projects");
+      setProjects(res.data);
     } catch (err) {
       console.error("Error fetching projects:", err);
     } finally {
@@ -63,17 +55,58 @@ export default function ProjectsDashboardPage() {
   };
 
   useEffect(() => {
-    if (isLoaded && user) {
+    if (user && !authLoading) {
       fetchProjects();
     }
-  }, [isLoaded, user]);
+  }, [user, authLoading]);
 
   // Filter projects based on search query
   const filteredProjects = projects.filter(
     (p) =>
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (p.projectType &&
-        p.projectType.toLowerCase().includes(searchQuery.toLowerCase()))
+        p.projectType.toLowerCase().includes(searchQuery.toLowerCase())),
+  );
+
+  const getInitials = (name?: string | null, email?: string) => {
+    if (name && name.trim()) {
+      const parts = name.trim().split(" ");
+      if (parts.length >= 2) {
+        return (parts[0][0] + parts[1][0]).toUpperCase();
+      }
+      return parts[0].substring(0, 2).toUpperCase();
+    }
+    if (email) {
+      return email.substring(0, 2).toUpperCase();
+    }
+    return "US";
+  };
+
+  const UserDropdown = () => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button className="flex items-center space-x-2 p-1 rounded-full hover:bg-ds-bg-neutral transition-colors outline-none focus:ring-2 focus:ring-brand">
+          <div className="w-8 h-8 rounded-full bg-brand text-white font-bold text-xs flex items-center justify-center shadow-sm">
+            {getInitials(user?.name, user?.email)}
+          </div>
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56 bg-white border border-[#DFE1E6] shadow-md rounded-[3px]" align="end">
+        <div className="px-3 py-2 border-b border-[#DFE1E6]">
+          <p className="text-xs font-bold text-[#172B4D] truncate">
+            {user?.name || "User"}
+          </p>
+          <p className="text-[11px] text-[#5E6C84] truncate">{user?.email}</p>
+        </div>
+        <DropdownMenuItem
+          onClick={logout}
+          className="text-xs text-red-600 font-semibold px-3 py-2 cursor-pointer hover:bg-red-50 flex items-center space-x-2"
+        >
+          <LogOut className="w-3.5 h-3.5" />
+          <span>Log Out</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 
   return (
@@ -95,7 +128,7 @@ export default function ProjectsDashboardPage() {
           >
             Create Project
           </Button>
-          <UserButton />
+          <UserDropdown />
         </div>
       </header>
 
@@ -140,231 +173,156 @@ export default function ProjectsDashboardPage() {
                     <Skeleton className="h-3 w-1/3 bg-gray-200" />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Skeleton className="h-3.5 w-full bg-gray-100" />
-                  <Skeleton className="h-3.5 w-5/6 bg-gray-100" />
+                <Skeleton className="h-3 w-full bg-gray-200" />
+                <div className="flex justify-between items-center pt-2">
+                  <Skeleton className="h-3 w-1/4 bg-gray-200" />
+                  <Skeleton className="h-3 w-1/4 bg-gray-200" />
                 </div>
               </div>
             ))}
           </div>
         ) : projects.length === 0 ? (
-          /* Empty Onboarding State */
-          <EmptyState
-            title="Welcome to Cadence"
-            description="Organize projects, boards, and team workflows in dedicated projects. Get started by creating your very first project."
-            icon={<Briefcase className="w-6 h-6" />}
-            action={
-              <Button
-                onClick={() => setShowCreateModal(true)}
-                className="w-full bg-[#0052CC] hover:bg-[#0747A6] text-white text-xs font-semibold rounded-[3px] py-2"
-              >
-                Create Project
-              </Button>
-            }
-          />
-        ) : (
-          /* Grid of Projects */
-          filteredProjects.length === 0 ? (
+          /* Empty State */
+          <div className="flex-grow flex items-center justify-center">
             <EmptyState
-              title="No matching projects found"
-              description="We couldn't find any projects matching your search query. Try checking the spelling or clear the search input."
-              icon={<span className="text-lg">🔍</span>}
-              iconBgClass="bg-[#F4F5F7] text-[#5E6C84]"
+              title="No projects found"
+              description="Get started by creating your first project workspace for your team."
+              actionLabel="Create Project"
+              onAction={() => setShowCreateModal(true)}
             />
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredProjects.map((p) => (
-                <div
-                  key={p.id}
-                  onClick={() => router.push(`/projects/${p.id}`)}
-                  className="bg-white border border-[#DFE1E6] rounded-[4px] p-5 hover:border-[#0052CC] hover:shadow-md transition-all flex flex-col justify-between min-h-[170px] relative group cursor-pointer"
-                >
-                  {/* Top: Info */}
-                  <div>
-                    <div className="flex items-start justify-between">
+          </div>
+        ) : (
+          /* Projects Grid */
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredProjects.map((p) => (
+              <div
+                key={p.id}
+                onClick={() => router.push(`/projects/${p.id}`)}
+                className="bg-white border border-[#DFE1E6] hover:border-[#0052CC] rounded-[4px] p-5 flex flex-col justify-between cursor-pointer transition-all duration-150 shadow-sm hover:shadow-md group relative"
+              >
+                <div>
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center space-x-3">
                       <div className="w-9 h-9 bg-[#0052CC] text-white font-bold text-sm rounded-[3px] flex items-center justify-center shadow-sm">
                         {p.name.charAt(0).toUpperCase()}
                       </div>
-                      
-                      {/* Owner actions bar: Visible on hover */}
-                      {p.role === "OWNER" && (
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1.5 absolute top-4 right-4 bg-white pl-2">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedProject(p);
-                                    setShowEditModal(true);
-                                  }}
-                                  disabled={p.status === "INACTIVE"}
-                                  className={`p-1 rounded-[3px] transition-colors ${
-                                    p.status === "INACTIVE"
-                                      ? "opacity-35 cursor-not-allowed text-[#5E6C84]"
-                                      : "p-1 hover:bg-[#EBECF0] text-[#5E6C84] hover:text-[#172B4D]"
-                                  }`}
-                                >
-                                  <Edit2 className="w-3.5 h-3.5" />
-                                </button>
-                              </TooltipTrigger>
-                              <TooltipContent className="bg-foreground text-background">
-                                {p.status === "INACTIVE"
-                                  ? "Activate project to edit settings"
-                                  : "Edit settings"}
-                              </TooltipContent>
-                            </Tooltip>
-
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedProject(p);
-                                    setShowDeleteModal(true);
-                                  }}
-                                  className={`p-1 rounded-[3px] transition-colors ${
-                                    p.status === "INACTIVE"
-                                      ? "hover:bg-green-50 text-green-600 hover:text-green-800"
-                                      : "hover:bg-red-50 text-red-500 hover:text-red-700"
-                                  }`}
-                                >
-                                  {p.status === "INACTIVE" ? (
-                                    <Plus className="w-3.5 h-3.5" />
-                                  ) : (
-                                    <Trash className="w-3.5 h-3.5" />
-                                  )}
-                                </button>
-                              </TooltipTrigger>
-                              <TooltipContent className="bg-foreground text-background">
-                                {p.status === "INACTIVE"
-                                  ? "Activate project"
-                                  : "Deactivate project"}
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                      )}
+                      <div>
+                        <h3 className="text-sm font-bold text-[#172B4D] group-hover:text-[#0052CC] transition-colors line-clamp-1">
+                          {p.name}
+                        </h3>
+                        <p className="text-[10px] text-[#5E6C84] uppercase tracking-wider font-semibold">
+                          {p.projectType || "Software Project"}
+                        </p>
+                      </div>
                     </div>
 
-                    <h3 className="text-sm font-bold text-[#172B4D] mt-3 group-hover:text-[#0052CC] transition-colors truncate">
-                      {p.name}
-                    </h3>
-                    <p className="text-[10px] text-[#5E6C84] mt-0.5 font-normal uppercase tracking-wider">
-                      {p.projectType || "General Project"}
-                    </p>
-                    <p className="text-xs text-[#5E6C84] mt-3 line-clamp-2 leading-relaxed">
-                      {p.description || "No description provided."}
-                    </p>
+                    {/* Actions Menu */}
+                    {(p.role === "OWNER" || p.role === "ADMIN") && (
+                      <div
+                        className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-1"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          onClick={() => {
+                            setSelectedProject(p);
+                            setShowEditModal(true);
+                          }}
+                          className="p-1 text-[#5E6C84] hover:text-[#172B4D] hover:bg-[#F4F5F7] rounded-[2px]"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSelectedProject(p);
+                            setShowDeleteModal(true);
+                          }}
+                          className="p-1 text-[#5E6C84] hover:text-[#DE350B] hover:bg-red-50 rounded-[2px]"
+                        >
+                          <Trash className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Bottom: Enter action */}
-                  <div className="border-t border-[#F4F5F7] mt-4 pt-3 flex items-center justify-between">
-                    <span
-                      className="text-xs text-[#0052CC] font-semibold hover:underline hover:text-[#0747A6]"
-                    >
-                      Enter Project
-                    </span>
-                    <div className="flex items-center space-x-1.5">
-                      {p.status === "INACTIVE" && (
-                        <span className="text-[9px] font-bold text-red-700 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded">
-                          INACTIVE
-                        </span>
-                      )}
-                      <span className="text-[9px] font-mono text-[#5E6C84] bg-[#FAFBFC] px-1.5 py-0.5 rounded border border-[#DFE1E6]">
-                        {p.role}
-                      </span>
-                    </div>
-                  </div>
+                  <p className="text-xs text-[#5E6C84] mt-3 line-clamp-2 leading-relaxed">
+                    {p.description || "No description provided."}
+                  </p>
                 </div>
-              ))}
-            </div>
-          )
+
+                <div className="flex items-center justify-between pt-4 mt-4 border-t border-[#F4F5F7] text-[11px] text-[#5E6C84]">
+                  <span className="font-medium">
+                    {p.totalTasks ?? 0} {p.totalTasks === 1 ? "Task" : "Tasks"}
+                  </span>
+                  <span className="bg-[#F4F5F7] text-[#172B4D] px-2 py-0.5 rounded-[2px] font-semibold text-[10px]">
+                    {p.role || "MEMBER"}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </main>
 
-      {/* ── MODALS (Modular Shared Components) ─────────────────────────────── */}
+      {/* ── Dialog Modals ──────────────────────────────────────────────── */}
       <CreateProjectModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
-        onCreateSuccess={(newProj: any) => {
+        onCreateSuccess={(newProj) => {
           fetchProjects();
           router.push(`/projects/${newProj.id}`);
         }}
       />
 
-      <EditProjectModal
-        isOpen={showEditModal}
-        onClose={() => {
-          setShowEditModal(false);
-          setSelectedProject(null);
-        }}
-        project={selectedProject}
-        onUpdateSuccess={() => {
-          fetchProjects();
-        }}
-      />
+      {selectedProject && (
+        <EditProjectModal
+          isOpen={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedProject(null);
+          }}
+          project={selectedProject}
+          onUpdateSuccess={() => {
+            fetchProjects();
+          }}
+        />
+      )}
 
-      <CustomAlertDialog
-        isOpen={showDeleteModal}
-        onClose={() => {
-          setShowDeleteModal(false);
-          setSelectedProject(null);
-        }}
-        title={selectedProject?.status === "INACTIVE" ? "Activate Project?" : "Deactivate Project?"}
-        confirmText={selectedProject?.status === "INACTIVE" ? "Activate Project" : "Deactivate Project"}
-        variant={selectedProject?.status === "INACTIVE" ? "default" : "danger"}
-        isLoading={isDeleting}
-        description={
-          <div className="space-y-3 text-left">
-            <p>
-              {selectedProject?.status === "INACTIVE" ? (
-                <>
-                  Are you sure you want to activate the project{" "}
-                  <strong className="text-[#172B4D]">"{selectedProject?.name}"</strong>? This will restore edit permissions and enable project modifications.
-                </>
-              ) : (
-                <>
-                  Are you sure you want to deactivate the project{" "}
-                  <strong className="text-[#172B4D]">"{selectedProject?.name}"</strong>? This will switch the project and all boards inside it to view-only mode.
-                </>
-              )}
-            </p>
-          </div>
-        }
-        onConfirm={async () => {
-          try {
-            setIsDeleting(true);
-            const token = await getToken();
-            if (!token) return;
-            const newStatus = selectedProject.status === "INACTIVE" ? "ACTIVE" : "INACTIVE";
-            const res = await fetch(
-              `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects/${selectedProject.id}`,
-              {
-                method: "PATCH",
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ status: newStatus }),
-              }
-            );
-
-            if (res.ok) {
+      {selectedProject && (
+        <CustomAlertDialog
+          isOpen={showDeleteModal}
+          onClose={() => {
+            setShowDeleteModal(false);
+            setSelectedProject(null);
+          }}
+          title="Deactivate Project"
+          confirmText="Deactivate"
+          variant="danger"
+          isLoading={isDeleting}
+          description={
+            <span>
+              Are you sure you want to deactivate project{" "}
+              <strong>"{selectedProject.name}"</strong>?
+            </span>
+          }
+          onConfirm={async () => {
+            try {
+              setIsDeleting(true);
+              await api.patch(`/projects/${selectedProject.id}`, {
+                status: "INACTIVE",
+              });
               setShowDeleteModal(false);
               setSelectedProject(null);
               fetchProjects();
-            } else {
-              const err = await res.json();
-              alert(err.error || "Failed to update project status");
+            } catch (err: any) {
+              alert(
+                err?.response?.data?.error || "Failed to update project status.",
+              );
+            } finally {
+              setIsDeleting(false);
             }
-          } catch (err) {
-            console.error("Error updating project status:", err);
-          } finally {
-            setIsDeleting(false);
-          }
-        }}
-      />
+          }}
+        />
+      )}
     </div>
   );
 }

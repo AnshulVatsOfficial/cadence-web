@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useAuth } from "@clerk/nextjs";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { api } from "@/lib/api";
 import CustomDialog from "../shared/CustomDialog";
 import { Field, FieldLabel, FieldError } from "../ui/field";
 import { Button } from "../ui/button";
@@ -19,7 +19,6 @@ import {
   SelectValue,
 } from "../ui/select";
 
-// Define the client-side validation schema using Zod
 const projectSchema = z.object({
   name: z
     .string()
@@ -50,7 +49,6 @@ export default function EditProjectModal({
   project,
   onUpdateSuccess,
 }: EditProjectModalProps) {
-  const { getToken } = useAuth();
   const [apiError, setApiError] = useState<string | null>(null);
 
   const {
@@ -67,10 +65,9 @@ export default function EditProjectModal({
       description: "",
       status: "ACTIVE",
     },
-    mode: "onChange"
+    mode: "onChange",
   });
 
-  // Sync state with selected project details when it changes
   useEffect(() => {
     if (project) {
       reset({
@@ -89,34 +86,13 @@ export default function EditProjectModal({
     setApiError(null);
 
     try {
-      const token = await getToken();
-      if (!token) {
-        setApiError("User authentication token not found.");
-        return;
-      }
-
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects/${project.id}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(data),
-        }
-      );
-
-      if (res.ok) {
-        const updated = await res.json();
-        onUpdateSuccess(updated);
-        onClose();
-      } else {
-        const err = await res.json();
-        setApiError(err.error || "Failed to update project.");
-      }
+      const res = await api.patch(`/projects/${project.id}`, data);
+      onUpdateSuccess(res.data);
+      onClose();
     } catch (err: any) {
-      setApiError(err.message || "An unexpected error occurred.");
+      setApiError(
+        err?.response?.data?.error || err.message || "Failed to update project.",
+      );
     }
   };
 
@@ -143,7 +119,11 @@ export default function EditProjectModal({
             aria-invalid={!!errors.name}
             {...register("name")}
           />
-          {errors.name && <FieldError className="text-[10px] text-[#DE350B] font-semibold mt-1">{errors.name.message}</FieldError>}
+          {errors.name && (
+            <FieldError className="text-[10px] text-[#DE350B] font-semibold mt-1">
+              {errors.name.message}
+            </FieldError>
+          )}
         </Field>
 
         <Field data-invalid={errors.projectType ? "true" : undefined}>
@@ -159,10 +139,18 @@ export default function EditProjectModal({
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border border-[#DFE1E6]">
-                  <SelectItem className="text-xs hover:bg-[#F4F5F7]" value="Software Development">Software Development</SelectItem>
-                  <SelectItem className="text-xs hover:bg-[#F4F5F7]" value="Marketing">Marketing</SelectItem>
-                  <SelectItem className="text-xs hover:bg-[#F4F5F7]" value="Business Operations">Business Operations</SelectItem>
-                  <SelectItem className="text-xs hover:bg-[#F4F5F7]" value="Design">Design</SelectItem>
+                  <SelectItem className="text-xs hover:bg-[#F4F5F7]" value="Software Development">
+                    Software Development
+                  </SelectItem>
+                  <SelectItem className="text-xs hover:bg-[#F4F5F7]" value="Marketing">
+                    Marketing
+                  </SelectItem>
+                  <SelectItem className="text-xs hover:bg-[#F4F5F7]" value="Business Operations">
+                    Business Operations
+                  </SelectItem>
+                  <SelectItem className="text-xs hover:bg-[#F4F5F7]" value="Design">
+                    Design
+                  </SelectItem>
                 </SelectContent>
               </Select>
             )}
@@ -187,11 +175,21 @@ export default function EditProjectModal({
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border border-[#DFE1E6]">
-                  <SelectItem className="text-xs hover:bg-[#F4F5F7]" value="ACTIVE">Active</SelectItem>
-                  <SelectItem className="text-xs hover:bg-[#F4F5F7]" value="ON_HOLD">On Hold</SelectItem>
-                  <SelectItem className="text-xs hover:bg-[#F4F5F7]" value="COMPLETED">Completed</SelectItem>
-                  <SelectItem className="text-xs hover:bg-[#F4F5F7]" value="ARCHIVED">Archived</SelectItem>
-                  <SelectItem className="text-xs hover:bg-[#F4F5F7]" value="INACTIVE">Inactive</SelectItem>
+                  <SelectItem className="text-xs hover:bg-[#F4F5F7]" value="ACTIVE">
+                    Active
+                  </SelectItem>
+                  <SelectItem className="text-xs hover:bg-[#F4F5F7]" value="ON_HOLD">
+                    On Hold
+                  </SelectItem>
+                  <SelectItem className="text-xs hover:bg-[#F4F5F7]" value="COMPLETED">
+                    Completed
+                  </SelectItem>
+                  <SelectItem className="text-xs hover:bg-[#F4F5F7]" value="ARCHIVED">
+                    Archived
+                  </SelectItem>
+                  <SelectItem className="text-xs hover:bg-[#F4F5F7]" value="INACTIVE">
+                    Inactive
+                  </SelectItem>
                 </SelectContent>
               </Select>
             )}
@@ -211,7 +209,11 @@ export default function EditProjectModal({
             aria-invalid={!!errors.description}
             {...register("description")}
           />
-          {errors.description && <FieldError className="text-[10px] text-[#DE350B] font-semibold mt-1">{errors.description.message}</FieldError>}
+          {errors.description && (
+            <FieldError className="text-[10px] text-[#DE350B] font-semibold mt-1">
+              {errors.description.message}
+            </FieldError>
+          )}
         </Field>
 
         <div className="flex justify-end space-x-2 pt-3 border-t border-[#DFE1E6] mt-6">
