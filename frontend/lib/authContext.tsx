@@ -66,19 +66,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       try {
         const refreshRes = await api.post("/auth/refresh");
         const token = refreshRes.data.accessToken;
-        const refreshedUser = refreshRes.data.user;
+        let activeUser = refreshRes.data.user;
 
         if (token) {
-          setAccessToken(token);
-          if (isMounted) setAccessTokenState(token);
-
-          if (refreshedUser && isMounted) {
-            setUser(refreshedUser);
-          } else {
-            const meRes = await api.get("/auth/me");
-            if (isMounted && meRes.data.user) {
-              setUser(meRes.data.user);
+          if (!activeUser) {
+            try {
+              const meRes = await api.get("/auth/me");
+              activeUser = meRes.data.user;
+            } catch (err) {
+              // Ignore
             }
+          }
+          if (isMounted) {
+            updateTokensAndUser(activeUser || null, token);
           }
         }
       } catch (err) {

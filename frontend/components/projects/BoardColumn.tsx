@@ -202,23 +202,27 @@ export default function BoardColumn({
                 autoFocus
                 className="h-7 py-0.5 px-2 text-xs bg-white border-[#DFE1E6] rounded-[3px] focus-visible:ring-1 focus-visible:ring-[#0052CC]"
               />
-              <button
+              <Button
                 type="submit"
+                size="icon-xs"
+                variant="ghost"
                 disabled={!isRenameValid || isRenaming}
-                className="p-1 hover:bg-[#DEEBFF] hover:text-[#0747A6] rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                className="h-7 w-7 p-1 hover:bg-[#DEEBFF] hover:text-[#0747A6] rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isRenaming ? <Spinner className="h-3 w-3" /> : <Check className="w-3.5 h-3.5" />}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                size="icon-xs"
+                variant="ghost"
                 onClick={() => {
                   setIsEditingName(false);
                   resetRename();
                 }}
-                className="p-1 hover:bg-[#FFEBEB] hover:text-[#DE350B] rounded text-xs"
+                className="h-7 w-7 p-1 hover:bg-[#FFEBEB] hover:text-[#DE350B] rounded text-xs"
               >
                 <X className="w-3.5 h-3.5" />
-              </button>
+              </Button>
             </form>
           ) : (
             <>
@@ -237,12 +241,14 @@ export default function BoardColumn({
                 {tasks.length}
               </span>
               {isAdminOrOwner && isWritable && (
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
                   onClick={() => setIsEditingName(true)}
-                  className="p-0.5 opacity-0 hover:opacity-100 transition-opacity text-[#5E6C84] hover:text-[#172B4D]"
+                  className="h-5 w-5 p-0.5 opacity-0 hover:opacity-100 transition-opacity text-[#5E6C84] hover:text-[#172B4D]"
                 >
                   <Edit2 className="w-3 h-3" />
-                </button>
+                </Button>
               )}
             </>
           )}
@@ -250,12 +256,14 @@ export default function BoardColumn({
 
         {/* Delete Column (Admin / Owner only) */}
         {isAdminOrOwner && isWritable && !isEditingName && (
-          <button
+          <Button
+            variant="ghost"
+            size="icon-xs"
             onClick={() => setShowDeleteColumnConfirm(true)}
-            className="p-1 rounded-[3px] text-[#5E6C84] hover:bg-[#FFEBEB] hover:text-[#DE350B] transition-colors"
+            className="h-7 w-7 p-1 rounded-[3px] text-[#5E6C84] hover:bg-[#FFEBEB] hover:text-[#DE350B] transition-colors"
           >
             <Trash2 className="w-3.5 h-3.5" />
-          </button>
+          </Button>
         )}
       </div>
 
@@ -290,16 +298,18 @@ export default function BoardColumn({
                     >
                       {/* Trash Button for Tasks */}
                       {isWritable && (
-                        <button
+                        <Button
                           type="button"
+                          variant="ghost"
+                          size="icon-xs"
                           onClick={(e) => {
                             e.stopPropagation();
                             setTaskToDelete(task);
                           }}
-                          className="absolute top-2 right-2 p-1 rounded-[3px] opacity-0 group-hover:opacity-100 transition-opacity text-[#5E6C84] hover:bg-[#FFEBEB] hover:text-[#DE350B]"
+                          className="absolute top-2 right-2 h-6 w-6 p-1 rounded-[3px] opacity-0 group-hover:opacity-100 transition-opacity text-[#5E6C84] hover:bg-[#FFEBEB] hover:text-[#DE350B]"
                         >
                           <Trash2 className="w-3 h-3" />
-                        </button>
+                        </Button>
                       )}
 
                       <h4 className="text-xs font-semibold text-[#172B4D] leading-relaxed mb-1 pr-5 group-hover:text-[#0052CC] transition-colors">
@@ -313,38 +323,28 @@ export default function BoardColumn({
                         </p>
                       )}
 
-                      {/* Task Footer details */}
-                      <div className="flex items-center justify-between border-t border-[#F4F5F7] pt-2 mt-2">
-                        <span className="text-[9px] font-bold text-[#5E6C84] tracking-tight uppercase">
-                          {task.id.slice(-6).toUpperCase()}
-                        </span>
-                        <div className="flex items-center space-x-2">
+                      <div className="flex items-center justify-between mt-2 pt-2 border-t border-[#F4F5F7]">
+                        <div className="flex items-center space-x-1.5">
+                          {renderPriorityIcon(task.priority)}
+                          <span className="text-[10px] font-semibold text-[#5E6C84] uppercase">
+                            {task.priority}
+                          </span>
+                        </div>
+
+                        {mainAssignee && (
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <span>{renderPriorityIcon(task.priority)}</span>
+                                <div className="w-5 h-5 rounded-full bg-[#0052CC] text-white text-[9px] font-bold flex items-center justify-center border border-white">
+                                  {assigneeInitials}
+                                </div>
                               </TooltipTrigger>
-                              <TooltipContent className="bg-foreground text-background">
-                                {task.priority.charAt(0).toUpperCase() +
-                                  task.priority.slice(1).toLowerCase()}{" "}
-                                Priority
+                              <TooltipContent>
+                                <p className="text-xs">{mainAssignee.name || mainAssignee.email}</p>
                               </TooltipContent>
                             </Tooltip>
-
-                            {mainAssignee && (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <div className="h-5 w-5 rounded-full bg-[#0052CC] text-white text-[9px] font-bold flex items-center justify-center cursor-help">
-                                    {assigneeInitials}
-                                  </div>
-                                </TooltipTrigger>
-                                <TooltipContent className="bg-foreground text-background">
-                                  Assignee: {mainAssignee.name}
-                                </TooltipContent>
-                              </Tooltip>
-                            )}
                           </TooltipProvider>
-                        </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -352,34 +352,28 @@ export default function BoardColumn({
               );
             })}
             {provided.placeholder}
-
-            {tasks.length === 0 && (
-              <div className="text-center py-6 text-xs text-[#5E6C84] italic select-none">
-                No issues found
-              </div>
-            )}
           </div>
         )}
       </Droppable>
 
-      {/* Add Task Form (bottom of the column) */}
-      <div className="p-2 border-t border-[#DFE1E6] bg-[#FAFBFC] rounded-b-[4px]">
+      {/* Footer Add Task Area */}
+      <div className="p-2 border-t border-transparent">
         {showAddTask ? (
-          <form onSubmit={handleTaskSubmit(onAddTask)} className="space-y-2">
+          <form onSubmit={handleTaskSubmit(onAddTask)} className="space-y-2 bg-white p-2 border border-[#DFE1E6] rounded-[3px] shadow-sm">
             <Textarea
               {...registerTask("title")}
-              placeholder="What needs to be done?"
               autoFocus
-              className="text-xs p-2 bg-white border-[#DFE1E6] rounded-[3px] resize-none h-16 focus-visible:ring-1 focus-visible:ring-[#0052CC]"
+              placeholder="What needs to be done?"
+              rows={2}
+              className="text-xs resize-none p-1.5 border-[#DFE1E6] rounded-[3px] focus-visible:ring-1 focus-visible:ring-[#0052CC]"
             />
             {taskErrors.title && (
-              <span className="text-[10px] text-[#DE350B] font-semibold block">
-                {taskErrors.title.message}
-              </span>
+              <p className="text-[10px] text-red-600 font-medium">{taskErrors.title.message}</p>
             )}
             <div className="flex items-center space-x-1.5">
               <Button
                 type="submit"
+                size="sm"
                 disabled={!isTaskValid || isTaskSubmitting}
                 className="bg-[#0052CC] hover:bg-[#0747A6] text-white text-[10px] h-7 px-2.5 rounded-[3px] disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -388,6 +382,7 @@ export default function BoardColumn({
               <Button
                 type="button"
                 variant="ghost"
+                size="sm"
                 onClick={() => {
                   setShowAddTask(false);
                   resetTask();
@@ -400,13 +395,14 @@ export default function BoardColumn({
           </form>
         ) : (
           isWritable && (
-            <button
+            <Button
+              variant="ghost"
               onClick={() => setShowAddTask(true)}
-              className="w-full flex items-center space-x-1.5 text-xs text-[#5E6C84] hover:text-[#172B4D] hover:bg-[#EBECF0] py-1 px-2 rounded transition-colors text-left"
+              className="w-full flex items-center justify-start space-x-1.5 text-xs text-[#5E6C84] hover:text-[#172B4D] hover:bg-[#EBECF0] h-8 py-1 px-2 rounded-[3px] transition-colors text-left font-normal"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Create issue</span>
-            </button>
+            </Button>
           )
         )}
       </div>

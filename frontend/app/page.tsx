@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/lib/authContext";
 import Link from "next/link";
 import {
@@ -25,9 +25,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
+
 export default function Home() {
   const { user, logout } = useAuth();
   const isLoggedIn = !!user;
+  const currentUser = user as any;
 
   // State for interactive tab selector
   const [activeTab, setActiveTab] = useState<"dev" | "product" | "design">("dev");
@@ -51,16 +55,16 @@ export default function Home() {
       <DropdownMenuTrigger asChild>
         <button className="flex items-center space-x-2 p-1 rounded-full hover:bg-ds-bg-neutral transition-colors outline-none focus:ring-2 focus:ring-brand">
           <div className="w-8 h-8 rounded-full bg-brand text-white font-bold text-xs flex items-center justify-center shadow-sm">
-            {getInitials(user?.name, user?.email)}
+            {getInitials(currentUser?.name, currentUser?.email)}
           </div>
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56 bg-white border border-[#DFE1E6] shadow-md rounded-[3px]" align="end">
         <div className="px-3 py-2 border-b border-[#DFE1E6]">
           <p className="text-xs font-bold text-[#172B4D] truncate">
-            {user?.name || "User"}
+            {currentUser?.name || "User"}
           </p>
-          <p className="text-[11px] text-[#5E6C84] truncate">{user?.email}</p>
+          <p className="text-[11px] text-[#5E6C84] truncate">{currentUser?.email}</p>
         </div>
         <DropdownMenuItem
           onClick={logout}

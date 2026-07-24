@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
+import { Button } from "../ui/button";
 
 declare global {
   interface Window {
@@ -134,8 +135,9 @@ export default function GoogleSignInButton({
       />
 
       {/* Jira Design System Custom Styled Button */}
-      <button
+      <Button
         type="button"
+        variant="outline"
         onClick={handleCustomButtonClick}
         disabled={disabled || isProcessing}
         className="w-full h-10 flex items-center justify-center space-x-2.5 px-4 bg-white border border-[#DFE1E6] hover:border-[#C1C7D0] hover:bg-[#FAFBFC] active:bg-[#EBECF0] text-[#172B4D] font-bold text-sm rounded-[3px] shadow-[0_1px_1px_rgba(9,30,66,0.08)] transition-all duration-150 select-none disabled:opacity-50 disabled:cursor-not-allowed"
@@ -159,7 +161,7 @@ export default function GoogleSignInButton({
           />
         </svg>
         <span>{isProcessing ? "Signing in..." : "Continue with Google"}</span>
-      </button>
+      </Button>
     </>
   );
 }

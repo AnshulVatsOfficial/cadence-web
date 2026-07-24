@@ -192,7 +192,7 @@ function ProjectBoardContent() {
             <Skeleton className="h-5 w-20 bg-gray-200 rounded-full" />
           </div>
           <div className="flex space-x-4 overflow-x-auto flex-1 pb-4">
-            {[1, 2, 3].map((i) => (
+            {[1, 2, 3, 4, 5, 6].map((i) => (
               <div
                 key={i}
                 className="w-72 bg-[#F4F5F7] rounded-[3px] p-3 flex-shrink-0 space-y-3"
@@ -262,8 +262,8 @@ function ProjectBoardContent() {
                         const matchesStage = t.stageId === stage.id;
                         const matchesSearch = searchQuery
                           ? t.title
-                              .toLowerCase()
-                              .includes(searchQuery.toLowerCase())
+                            .toLowerCase()
+                            .includes(searchQuery.toLowerCase())
                           : true;
                         return matchesStage && matchesSearch;
                       });

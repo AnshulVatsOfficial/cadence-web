@@ -4,8 +4,8 @@ import type { NextRequest } from "next/server";
 // Private routes that require authentication
 const privateRoutePrefixes = ["/projects"];
 
-// Public routes where logged-in users are redirected to /projects
-const publicAuthPages = ["/", "/login", "/signup"];
+// Public auth pages where logged-in users are redirected to /projects
+const publicAuthPages = ["/login", "/signup"];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -23,7 +23,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // 2. Authenticated user trying to access public routes (/, /login, /signup) -> Redirect to /projects
+  // 2. Authenticated user trying to access /login or /signup -> Redirect to /projects
   if (isPublicAuthPage && isLoggedIn) {
     return NextResponse.redirect(new URL("/projects", request.url));
   }
