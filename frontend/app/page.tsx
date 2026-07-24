@@ -469,7 +469,7 @@ export default function Home() {
               </div>
               <h3 className="text-sm font-bold text-[#172B4D]">Identity & SSO</h3>
               <p className="text-xs text-[#5E6C84] leading-relaxed">
-                Integrated Clerk authentication routes ensure secure identity verification, auto-syncing profiles to databases.
+                Integrated Google authentication routes ensure secure identity verification, auto-syncing profiles to databases.
               </p>
             </div>
           </div>

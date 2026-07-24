@@ -56,9 +56,10 @@ function ProjectBoardContent() {
   const {
     register: registerCol,
     handleSubmit: handleColSubmit,
-    formState: { errors: colErrors, isSubmitting: isColSubmitting },
+    formState: { errors: colErrors, isValid: isColValid, isSubmitting: isColSubmitting },
     reset: resetCol,
   } = useForm({
+    mode: "onChange",
     resolver: zodResolver(addColumnSchema),
     defaultValues: { name: "" },
   });
@@ -315,8 +316,8 @@ function ProjectBoardContent() {
                               <div className="flex items-center space-x-2">
                                 <Button
                                   type="submit"
-                                  disabled={isColSubmitting}
-                                  className="bg-[#0052CC] hover:bg-[#0747A6] text-white text-xs h-7 px-3 rounded-[3px]"
+                                  disabled={!isColValid || isColSubmitting}
+                                  className="bg-[#0052CC] hover:bg-[#0747A6] text-white text-xs h-7 px-3 rounded-[3px] disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                   {isColSubmitting ? "Adding..." : "Add Column"}
                                 </Button>

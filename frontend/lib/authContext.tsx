@@ -11,12 +11,20 @@ export interface User {
   isEmailVerified?: boolean;
 }
 
+export interface MagicLinkResponse {
+  message: string;
+  magicLink?: string;
+  user?: User;
+}
+
 interface AuthContextType {
   user: User | null;
   accessToken: string | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, name?: string) => Promise<void>;
+  signup: (email: string, password: string, name: string) => Promise<MagicLinkResponse>;
+  sendMagicLink: (email: string) => Promise<MagicLinkResponse>;
+  verifyMagicLink: (token: string) => Promise<User>;
   loginWithGoogle: (idToken: string) => Promise<void>;
   loginWithGithub: () => void;
   logout: () => Promise<void>;
@@ -39,6 +47,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setUser(newUser);
     setAccessTokenState(newAccessToken);
     setAccessToken(newAccessToken);
+    if (typeof document !== "undefined") {
+      if (newUser) {
+        document.cookie =
+          "cadence_logged_in=true; path=/; max-age=2592000; SameSite=Lax";
+      } else {
+        document.cookie =
+          "cadence_logged_in=; path=/; max-age=0; SameSite=Lax";
+      }
+    }
   };
 
   // Silently refresh token on app mount
@@ -49,14 +66,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       try {
         const refreshRes = await api.post("/auth/refresh");
         const token = refreshRes.data.accessToken;
+        const refreshedUser = refreshRes.data.user;
 
         if (token) {
           setAccessToken(token);
           if (isMounted) setAccessTokenState(token);
 
-          const meRes = await api.get("/auth/me");
-          if (isMounted && meRes.data.user) {
-            setUser(meRes.data.user);
+          if (refreshedUser && isMounted) {
+            setUser(refreshedUser);
+          } else {
+            const meRes = await api.get("/auth/me");
+            if (isMounted && meRes.data.user) {
+              setUser(meRes.data.user);
+            }
           }
         }
       } catch (err) {
@@ -83,9 +105,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     updateTokensAndUser(res.data.user, res.data.accessToken);
   };
 
-  const signup = async (email: string, password: string, name?: string) => {
+  const signup = async (email: string, password: string, name: string): Promise<MagicLinkResponse> => {
     const res = await api.post("/auth/signup", { email, password, name });
+    return res.data;
+  };
+
+  const sendMagicLink = async (email: string): Promise<MagicLinkResponse> => {
+    const res = await api.post("/auth/magic-link", { email });
+    return res.data;
+  };
+
+  const verifyMagicLink = async (token: string) => {
+    const res = await api.post("/auth/verify-magic-link", { token });
     updateTokensAndUser(res.data.user, res.data.accessToken);
+    return res.data.user;
   };
 
   const loginWithGoogle = async (idToken: string) => {
@@ -129,6 +162,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         isLoading,
         login,
         signup,
+        sendMagicLink,
+        verifyMagicLink,
         loginWithGoogle,
         loginWithGithub,
         logout,

@@ -55,7 +55,7 @@ export default function EditProjectModal({
     register,
     handleSubmit,
     control,
-    formState: { errors, isSubmitting },
+    formState: { errors, isValid, isSubmitting },
     reset,
   } = useForm<FormValues>({
     resolver: zodResolver(projectSchema),
@@ -227,8 +227,8 @@ export default function EditProjectModal({
           </Button>
           <Button
             type="submit"
-            disabled={isSubmitting}
-            className="text-xs font-semibold text-white bg-[#0052CC] hover:bg-[#0747A6] rounded-[3px] flex items-center justify-center"
+            disabled={!isValid || isSubmitting}
+            className="text-xs font-semibold text-white bg-[#0052CC] hover:bg-[#0747A6] rounded-[3px] flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting && <Spinner className="mr-2 h-3 w-3 text-white" />}
             {isSubmitting ? "Saving..." : "Save Changes"}

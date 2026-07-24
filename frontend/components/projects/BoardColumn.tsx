@@ -79,9 +79,10 @@ export default function BoardColumn({
   const {
     register: registerRename,
     handleSubmit: handleRenameSubmit,
-    formState: { errors: renameErrors },
+    formState: { errors: renameErrors, isValid: isRenameValid },
     reset: resetRename,
   } = useForm({
+    mode: "onChange",
     resolver: zodResolver(renameColumnSchema),
     defaultValues: { name: stage.name },
   });
@@ -90,9 +91,10 @@ export default function BoardColumn({
   const {
     register: registerTask,
     handleSubmit: handleTaskSubmit,
-    formState: { errors: taskErrors, isSubmitting: isTaskSubmitting },
+    formState: { errors: taskErrors, isValid: isTaskValid, isSubmitting: isTaskSubmitting },
     reset: resetTask,
   } = useForm({
+    mode: "onChange",
     resolver: zodResolver(createTaskSchema),
     defaultValues: { title: "" },
   });
@@ -202,8 +204,8 @@ export default function BoardColumn({
               />
               <button
                 type="submit"
-                disabled={isRenaming}
-                className="p-1 hover:bg-[#DEEBFF] hover:text-[#0747A6] rounded text-xs"
+                disabled={!isRenameValid || isRenaming}
+                className="p-1 hover:bg-[#DEEBFF] hover:text-[#0747A6] rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isRenaming ? <Spinner className="h-3 w-3" /> : <Check className="w-3.5 h-3.5" />}
               </button>
@@ -378,8 +380,8 @@ export default function BoardColumn({
             <div className="flex items-center space-x-1.5">
               <Button
                 type="submit"
-                disabled={isTaskSubmitting}
-                className="bg-[#0052CC] hover:bg-[#0747A6] text-white text-[10px] h-7 px-2.5 rounded-[3px]"
+                disabled={!isTaskValid || isTaskSubmitting}
+                className="bg-[#0052CC] hover:bg-[#0747A6] text-white text-[10px] h-7 px-2.5 rounded-[3px] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isTaskSubmitting ? "Adding..." : "Add"}
               </Button>
