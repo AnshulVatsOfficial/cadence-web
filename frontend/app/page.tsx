@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { UserButton, useUser } from "@clerk/nextjs";
+import React, { useState, useEffect } from "react";
+import { useAuth } from "@/lib/authContext";
 import Link from "next/link";
 import {
   KanbanSquare,
@@ -16,14 +16,66 @@ import {
   PlayCircle,
   GitBranch,
   CheckCircle2,
+  LogOut,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 
 export default function Home() {
-  const { user } = useUser();
+  const { user, logout } = useAuth();
   const isLoggedIn = !!user;
+  const currentUser = user as any;
 
   // State for interactive tab selector
   const [activeTab, setActiveTab] = useState<"dev" | "product" | "design">("dev");
+
+  const getInitials = (name?: string | null, email?: string) => {
+    if (name && name.trim()) {
+      const parts = name.trim().split(" ");
+      if (parts.length >= 2) {
+        return (parts[0][0] + parts[1][0]).toUpperCase();
+      }
+      return parts[0].substring(0, 2).toUpperCase();
+    }
+    if (email) {
+      return email.substring(0, 2).toUpperCase();
+    }
+    return "US";
+  };
+
+  const UserDropdown = () => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button className="flex items-center space-x-2 p-1 rounded-full hover:bg-ds-bg-neutral transition-colors outline-none focus:ring-2 focus:ring-brand">
+          <div className="w-8 h-8 rounded-full bg-brand text-white font-bold text-xs flex items-center justify-center shadow-sm">
+            {getInitials(currentUser?.name, currentUser?.email)}
+          </div>
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56 bg-white border border-[#DFE1E6] shadow-md rounded-[3px]" align="end">
+        <div className="px-3 py-2 border-b border-[#DFE1E6]">
+          <p className="text-xs font-bold text-[#172B4D] truncate">
+            {currentUser?.name || "User"}
+          </p>
+          <p className="text-[11px] text-[#5E6C84] truncate">{currentUser?.email}</p>
+        </div>
+        <DropdownMenuItem
+          onClick={logout}
+          className="text-xs text-red-600 font-semibold px-3 py-2 cursor-pointer hover:bg-red-50 flex items-center space-x-2"
+        >
+          <LogOut className="w-3.5 h-3.5" />
+          <span>Log Out</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 
   return (
     <div className="flex flex-col min-h-screen bg-white font-sans text-[#172B4D]">
@@ -75,7 +127,7 @@ export default function Home() {
                 <span>Go to project</span>
                 <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
               </Link>
-              <UserButton />
+              <UserDropdown />
             </>
           )}
         </div>
@@ -421,7 +473,7 @@ export default function Home() {
               </div>
               <h3 className="text-sm font-bold text-[#172B4D]">Identity & SSO</h3>
               <p className="text-xs text-[#5E6C84] leading-relaxed">
-                Integrated Clerk authentication routes ensure secure identity verification, auto-syncing profiles to databases.
+                Integrated Google authentication routes ensure secure identity verification, auto-syncing profiles to databases.
               </p>
             </div>
           </div>

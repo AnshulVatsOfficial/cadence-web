@@ -7,8 +7,9 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
-import { useUser, useAuth } from "@clerk/nextjs";
 import { useParams } from "next/navigation";
+import { useAuth } from "@/lib/authContext";
+import { api } from "@/lib/api";
 
 interface ProjectContextProps {
   projects: any[];
@@ -19,7 +20,7 @@ interface ProjectContextProps {
   profileError: string | null;
   fetchProjects: () => Promise<void>;
   fetchProjectDetails: () => Promise<void>;
-  
+
   // Shared Modals triggers
   showCreateModal: boolean;
   setShowCreateModal: (open: boolean) => void;
@@ -29,13 +30,14 @@ interface ProjectContextProps {
   setShowDeleteModal: (open: boolean) => void;
 }
 
-const ProjectContext = createContext<ProjectContextProps | undefined>(undefined);
+const ProjectContext = createContext<ProjectContextProps | undefined>(
+  undefined,
+);
 
 export function ProjectProvider({ children }: { children: React.ReactNode }) {
-  const { user, isLoaded } = useUser();
-  const { getToken } = useAuth();
+  const { user, accessToken, isLoading: authLoading } = useAuth();
   const params = useParams();
-  
+
   const projectId = params?.projectId as string;
 
   const [projects, setProjects] = useState<any[]>([]);
@@ -53,85 +55,60 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
   // Fetch all projects for user
   const fetchProjects = useCallback(async () => {
     try {
-      const token = await getToken();
-      if (!token) return;
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      if (res.ok) {
-        const data = await res.json();
-        setProjects(data);
+      if (!accessToken) return;
+      const res = await api.get("/projects");
+      const data = res.data;
+      setProjects(data);
 
-        const currentProj = data.find((p: any) => p.id === projectId);
-        if (currentProj) {
-          setActiveProject(currentProj);
-        }
+      const currentProj = data.find((p: any) => p.id === projectId);
+      if (currentProj) {
+        setActiveProject(currentProj);
       }
     } catch (err) {
       console.error("Error fetching projects:", err);
     }
-  }, [projectId, getToken]);
+  }, [projectId, accessToken]);
 
   // Fetch project details (status, role, tasks, etc)
   const fetchProjectDetails = useCallback(async () => {
-    if (!projectId) return;
+    if (!projectId || !accessToken) return;
     try {
-      const token = await getToken();
-      if (!token) return;
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects/${projectId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      if (res.ok) {
-        const data = await res.json();
-        setProjectDetails(data);
-      }
+      const res = await api.get(`/projects/${projectId}`);
+      setProjectDetails(res.data);
     } catch (err) {
       console.error("Error fetching project details:", err);
     }
-  }, [projectId, getToken]);
+  }, [projectId, accessToken]);
 
   // Sync profile & load projects
   useEffect(() => {
-    if (!isLoaded || !user) return;
+    if (authLoading || !user || !accessToken) return;
     (async () => {
       try {
         setLoadingProjects(true);
-        const token = await getToken();
-        if (!token) return;
-
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/profile`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        if (!res.ok) {
-          const err = await res.json();
-          setProfileError(err.error ?? `HTTP ${res.status}`);
-          return;
-        }
-
-        const { user: dbUser } = await res.json();
+        const res = await api.get("/users/profile");
+        const dbUser = res.data.user;
         setBackendDbId(dbUser.id);
-        
-        // Parallel fetch projects list and current project details
+        setProfileError(null);
+
         await Promise.all([fetchProjects(), fetchProjectDetails()]);
       } catch (e: any) {
-        setProfileError(e.message);
+        setProfileError(
+          e?.response?.data?.error || e.message || "Profile fetch failed",
+        );
       } finally {
         setLoadingProjects(false);
       }
     })();
-  }, [isLoaded, user, getToken, fetchProjects, fetchProjectDetails]);
+  }, [authLoading, user, accessToken, fetchProjects, fetchProjectDetails]);
 
   // Fetch details if projectId changes
   useEffect(() => {
-    if (projectId && backendDbId) {
+    if (projectId && backendDbId && accessToken) {
       fetchProjectDetails();
       fetchProjects();
     }
-  }, [projectId, backendDbId, fetchProjectDetails, fetchProjects]);
+  }, [projectId, backendDbId, accessToken, fetchProjectDetails, fetchProjects]);
 
   return (
     <ProjectContext.Provider

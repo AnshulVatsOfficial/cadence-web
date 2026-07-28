@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { UserButton, useUser, useAuth } from "@clerk/nextjs";
 import { useRouter, useParams, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
@@ -12,7 +11,11 @@ import {
   Loader2,
   Home,
   Check,
+  LogOut,
+  User as UserIcon,
 } from "lucide-react";
+import { useAuth } from "@/lib/authContext";
+import { api } from "@/lib/api";
 import { useProject } from "./ProjectContext";
 import CreateProjectModal from "./CreateProjectModal";
 import EditProjectModal from "./EditProjectModal";
@@ -49,8 +52,7 @@ export default function ProjectLayoutShell({
   searchQuery = "",
   setSearchQuery,
 }: ProjectLayoutShellProps) {
-  const { user } = useUser();
-  const { getToken } = useAuth();
+  const { user, logout } = useAuth();
   const router = useRouter();
   const params = useParams();
   const pathname = usePathname();
@@ -79,6 +81,47 @@ export default function ProjectLayoutShell({
   const handleProjectChange = (proj: any) => {
     router.push(`/projects/${proj.id}`);
   };
+
+  const getInitials = (name?: string | null, email?: string) => {
+    if (name && name.trim()) {
+      const parts = name.trim().split(" ");
+      if (parts.length >= 2) {
+        return (parts[0][0] + parts[1][0]).toUpperCase();
+      }
+      return parts[0].substring(0, 2).toUpperCase();
+    }
+    if (email) {
+      return email.substring(0, 2).toUpperCase();
+    }
+    return "US";
+  };
+
+  const UserDropdown = () => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button className="flex items-center space-x-2 p-1 rounded-full hover:bg-ds-bg-neutral transition-colors outline-none focus:ring-2 focus:ring-brand">
+          <div className="w-8 h-8 rounded-full bg-brand text-white font-bold text-xs flex items-center justify-center shadow-sm">
+            {getInitials(user?.name, user?.email)}
+          </div>
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56 bg-white border border-[#DFE1E6] shadow-md rounded-[3px]" align="end">
+        <div className="px-3 py-2 border-b border-[#DFE1E6]">
+          <p className="text-xs font-bold text-[#172B4D] truncate">
+            {user?.name || "User"}
+          </p>
+          <p className="text-[11px] text-[#5E6C84] truncate">{user?.email}</p>
+        </div>
+        <DropdownMenuItem
+          onClick={logout}
+          className="text-xs text-red-600 font-semibold px-3 py-2 cursor-pointer hover:bg-red-50 flex items-center space-x-2"
+        >
+          <LogOut className="w-3.5 h-3.5" />
+          <span>Log Out</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 
   return (
     <SidebarProvider>
@@ -162,54 +205,49 @@ export default function ProjectLayoutShell({
 
           {/* Sidebar Content */}
           <SidebarContent className="p-3 group-data-[collapsible=icon]:p-2 space-y-6">
-            
-            {/* Global navigation shortcuts */}
-            <div>
-              <div className="space-y-0.5">
+            <div className="space-y-0.5">
+              <SidebarMenuButton
+                onClick={() => router.push("/projects")}
+                className={`w-full flex items-center gap-x-2.5 px-2 py-1.5 rounded-[3px] text-left text-xs group-data-[collapsible=icon]:justify-center ${
+                  pathname === "/projects"
+                    ? "bg-[#DEEBFF] text-[#0747A6] font-semibold"
+                    : "text-[#172B4D] hover:bg-[#EBECF0]"
+                }`}
+              >
+                <Home className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="truncate group-data-[collapsible=icon]:hidden">All Projects</span>
+              </SidebarMenuButton>
+              
+              {activeProject && (
                 <SidebarMenuButton
-                  onClick={() => router.push("/projects")}
+                  onClick={() => router.push(`/projects/${projectId}`)}
                   className={`w-full flex items-center gap-x-2.5 px-2 py-1.5 rounded-[3px] text-left text-xs group-data-[collapsible=icon]:justify-center ${
-                    pathname === "/projects"
+                    pathname === `/projects/${projectId}`
                       ? "bg-[#DEEBFF] text-[#0747A6] font-semibold"
                       : "text-[#172B4D] hover:bg-[#EBECF0]"
                   }`}
                 >
-                  <Home className="w-3.5 h-3.5 flex-shrink-0" />
-                  <span className="truncate group-data-[collapsible=icon]:hidden">All Projects</span>
+                  <KanbanSquare className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span className="truncate group-data-[collapsible=icon]:hidden">Kanban Board</span>
                 </SidebarMenuButton>
-                
-                {activeProject && (
-                  <SidebarMenuButton
-                    onClick={() => router.push(`/projects/${projectId}`)}
-                    className={`w-full flex items-center gap-x-2.5 px-2 py-1.5 rounded-[3px] text-left text-xs group-data-[collapsible=icon]:justify-center ${
-                      pathname === `/projects/${projectId}`
-                        ? "bg-[#DEEBFF] text-[#0747A6] font-semibold"
-                        : "text-[#172B4D] hover:bg-[#EBECF0]"
-                    }`}
-                  >
-                    <KanbanSquare className="w-3.5 h-3.5 flex-shrink-0" />
-                    <span className="truncate group-data-[collapsible=icon]:hidden">Kanban Board</span>
-                  </SidebarMenuButton>
-                )}
-              </div>
+              )}
             </div>
-
           </SidebarContent>
 
           {/* Sidebar Footer: User profile & status */}
           <SidebarFooter className="border-t border-[#DFE1E6] p-3 group-data-[collapsible=icon]:p-2 flex flex-row items-center gap-x-2 bg-[#F4F5F7] group-data-[collapsible=icon]:justify-center">
-            <UserButton />
+            <UserDropdown />
             <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
               <p className="text-xs font-semibold text-[#172B4D] truncate">
-                {user?.fullName || "Loading..."}
+                {user?.name || user?.email || "User"}
               </p>
               {backendDbId ? (
                 <span className="inline-flex items-center text-[9px] font-mono text-green-700 bg-green-50 border border-green-200 px-1.5 py-0.5 rounded">
-                  ✓ Database Synced
+                  ✓ Authenticated
                 </span>
               ) : profileError ? (
                 <span className="inline-flex items-center text-[9px] font-mono text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded cursor-help" title={profileError}>
-                  ✗ Sync Failed
+                  ✗ Error
                 </span>
               ) : (
                 <span className="text-[9px] font-mono text-gray-500 flex items-center space-x-1">
@@ -227,7 +265,6 @@ export default function ProjectLayoutShell({
           
           {/* Main Topbar Header */}
           <header className="flex items-center justify-between px-6 border-b border-[#DFE1E6] h-[64px] min-h-[64px] bg-white select-none">
-            {/* Left side: Trigger + Breadcrumbs */}
             <div className="flex items-center space-x-3">
               <SidebarTrigger className="text-[#5E6C84] hover:text-[#172B4D] hover:bg-[#EBECF0] h-8 w-8 rounded-[3px]" />
               {activeProject && (
@@ -246,7 +283,6 @@ export default function ProjectLayoutShell({
               )}
             </div>
 
-            {/* Right side: Search queries input & Profile triggers */}
             <div className="flex items-center space-x-4">
               {activeProject && setSearchQuery && (
                 <div className="relative">
@@ -260,11 +296,10 @@ export default function ProjectLayoutShell({
                   />
                 </div>
               )}
-              <UserButton />
+              <UserDropdown />
             </div>
           </header>
 
-          {/* Reusable warning banner if project is inactive */}
           {projectDetails?.status === "INACTIVE" && (
             <InformationBanner
               variant="warning"
@@ -273,13 +308,11 @@ export default function ProjectLayoutShell({
             />
           )}
 
-          {/* Child Viewport Slot */}
           <div className="flex-1 overflow-hidden relative">
             {children}
           </div>
         </main>
 
-        {/* ── COMPONENT DIALOGS ─────────────────────────────────────────── */}
         <CreateProjectModal
           isOpen={showCreateModal}
           onClose={() => setShowCreateModal(false)}
@@ -299,7 +332,6 @@ export default function ProjectLayoutShell({
           }}
         />
 
-        {/* Deactivate/Activate Project Alert Dialog */}
         <CustomAlertDialog
           isOpen={showDeleteModal}
           onClose={() => setShowDeleteModal(false)}
@@ -327,37 +359,18 @@ export default function ProjectLayoutShell({
           onConfirm={async () => {
             try {
               setIsDeletingProj(true);
-              const token = await getToken();
-              if (!token) return;
               const newStatus = projectDetails?.status === "INACTIVE" ? "ACTIVE" : "INACTIVE";
-              const res = await fetch(
-                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects/${activeProject.id}`,
-                {
-                  method: "PATCH",
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({ status: newStatus }),
-                }
-              );
-
-              if (res.ok) {
-                setShowDeleteModal(false);
-                await fetchProjectDetails();
-                await fetchProjects();
-              } else {
-                const err = await res.json();
-                alert(err.error || "Failed to update project status");
-              }
-            } catch (err) {
-              console.error("Error updating project status:", err);
+              await api.patch(`/projects/${activeProject.id}`, { status: newStatus });
+              setShowDeleteModal(false);
+              await fetchProjectDetails();
+              await fetchProjects();
+            } catch (err: any) {
+              alert(err?.response?.data?.error || "Failed to update project status");
             } finally {
               setIsDeletingProj(false);
             }
           }}
         />
-
       </div>
     </SidebarProvider>
   );

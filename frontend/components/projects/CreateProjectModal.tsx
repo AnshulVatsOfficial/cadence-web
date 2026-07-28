@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { useAuth } from "@clerk/nextjs";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { api } from "@/lib/api";
 import CustomDialog from "../shared/CustomDialog";
 import { Field, FieldLabel, FieldError } from "../ui/field";
 import { Button } from "../ui/button";
@@ -19,7 +19,6 @@ import {
   SelectValue,
 } from "../ui/select";
 
-// Define the client-side validation schema using Zod
 const projectSchema = z.object({
   name: z
     .string()
@@ -47,14 +46,13 @@ export default function CreateProjectModal({
   onClose,
   onCreateSuccess,
 }: CreateProjectModalProps) {
-  const { getToken } = useAuth();
   const [apiError, setApiError] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
     control,
-    formState: { errors, isSubmitting },
+    formState: { errors, isValid, isSubmitting },
     reset,
   } = useForm<FormValues>({
     resolver: zodResolver(projectSchema),
@@ -63,42 +61,21 @@ export default function CreateProjectModal({
       projectType: "Software Development",
       description: "",
     },
-    mode:"onChange"
+    mode: "onChange",
   });
 
   const onSubmit = async (data: FormValues) => {
     setApiError(null);
 
     try {
-      const token = await getToken();
-      if (!token) {
-        setApiError("User authentication token not found.");
-        return;
-      }
-
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(data),
-        }
-      );
-
-      if (res.ok) {
-        const newProj = await res.json();
-        reset();
-        onCreateSuccess(newProj);
-        onClose();
-      } else {
-        const err = await res.json();
-        setApiError(err.error || "Failed to create project.");
-      }
+      const res = await api.post("/projects", data);
+      reset();
+      onCreateSuccess(res.data);
+      onClose();
     } catch (err: any) {
-      setApiError(err.message || "An unexpected error occurred.");
+      setApiError(
+        err?.response?.data?.error || err.message || "Failed to create project.",
+      );
     }
   };
 
@@ -129,7 +106,11 @@ export default function CreateProjectModal({
             aria-invalid={!!errors.name}
             {...register("name")}
           />
-          {errors.name && <FieldError className="text-[10px] text-[#DE350B] font-semibold mt-1">{errors.name.message}</FieldError>}
+          {errors.name && (
+            <FieldError className="text-[10px] text-[#DE350B] font-semibold mt-1">
+              {errors.name.message}
+            </FieldError>
+          )}
         </Field>
 
         <Field data-invalid={errors.projectType ? "true" : undefined}>
@@ -145,10 +126,18 @@ export default function CreateProjectModal({
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border border-[#DFE1E6]">
-                  <SelectItem className="text-xs hover:bg-[#F4F5F7]" value="Software Development">Software Development</SelectItem>
-                  <SelectItem className="text-xs hover:bg-[#F4F5F7]" value="Marketing">Marketing</SelectItem>
-                  <SelectItem className="text-xs hover:bg-[#F4F5F7]" value="Business Operations">Business Operations</SelectItem>
-                  <SelectItem className="text-xs hover:bg-[#F4F5F7]" value="Design">Design</SelectItem>
+                  <SelectItem className="text-xs hover:bg-[#F4F5F7]" value="Software Development">
+                    Software Development
+                  </SelectItem>
+                  <SelectItem className="text-xs hover:bg-[#F4F5F7]" value="Marketing">
+                    Marketing
+                  </SelectItem>
+                  <SelectItem className="text-xs hover:bg-[#F4F5F7]" value="Business Operations">
+                    Business Operations
+                  </SelectItem>
+                  <SelectItem className="text-xs hover:bg-[#F4F5F7]" value="Design">
+                    Design
+                  </SelectItem>
                 </SelectContent>
               </Select>
             )}
@@ -169,7 +158,11 @@ export default function CreateProjectModal({
             aria-invalid={!!errors.description}
             {...register("description")}
           />
-          {errors.description && <FieldError className="text-[10px] text-[#DE350B] font-semibold mt-1">{errors.description.message}</FieldError>}
+          {errors.description && (
+            <FieldError className="text-[10px] text-[#DE350B] font-semibold mt-1">
+              {errors.description.message}
+            </FieldError>
+          )}
         </Field>
 
         <div className="flex justify-end space-x-2 pt-3 border-t border-[#DFE1E6] mt-6">
@@ -186,8 +179,8 @@ export default function CreateProjectModal({
           </Button>
           <Button
             type="submit"
-            disabled={isSubmitting}
-            className="text-xs font-semibold text-white bg-[#0052CC] hover:bg-[#0747A6] rounded-[3px] flex items-center justify-center"
+            disabled={!isValid || isSubmitting}
+            className="text-xs font-semibold text-white bg-[#0052CC] hover:bg-[#0747A6] rounded-[3px] flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting && <Spinner className="mr-2 h-3 w-3 text-white" />}
             {isSubmitting ? "Creating..." : "Create"}
