@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,8 +19,10 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-export default function LoginPage() {
+function LoginPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTo = searchParams.get("returnTo") || "/projects";
   const { user, login, loginWithGoogle, loginWithGithub, isLoading: authLoading } = useAuth();
 
   const [error, setError] = useState<string | null>(null);
@@ -41,9 +43,9 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (user && !authLoading) {
-      router.replace("/projects");
+      router.replace(returnTo);
     }
-  }, [user, authLoading, router]);
+  }, [user, authLoading, router, returnTo]);
 
   // Block rendering login form completely if logged in or checking session
   if (authLoading || user) {
@@ -60,7 +62,7 @@ export default function LoginPage() {
 
     try {
       await login(data.email, data.password);
-      router.push("/projects");
+      router.push(returnTo);
     } catch (err: any) {
       const msg =
         err?.response?.data?.error || err?.message || "Login failed. Please check your credentials.";
@@ -204,5 +206,18 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex flex-col items-center justify-center bg-ds-bg-neutral-subtle">
+        <Loader2 className="w-8 h-8 animate-spin text-[#0052CC]" />
+        <p className="mt-3 text-xs text-[#5E6C84] font-medium">Loading...</p>
+      </div>
+    }>
+      <LoginPageContent />
+    </Suspense>
   );
 }

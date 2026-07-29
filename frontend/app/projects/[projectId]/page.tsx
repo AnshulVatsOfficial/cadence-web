@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useProject, ProjectProvider } from "../../../components/projects/ProjectContext";
 import ProjectLayoutShell from "../../../components/projects/ProjectLayoutShell";
 import BoardColumn from "../../../components/projects/BoardColumn";
+import InviteMembersModal from "../../../components/projects/InviteMembersModal";
 import { api } from "@/lib/api";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -47,6 +48,7 @@ function ProjectBoardContent() {
   const [localStages, setLocalStages] = useState<any[]>([]);
   const [localTasks, setLocalTasks] = useState<any[]>([]);
   const [showAddColumn, setShowAddColumn] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   const userRole = projectDetails?.role;
@@ -234,11 +236,22 @@ function ProjectBoardContent() {
             </span>
           </div>
 
-          <div className="text-xs text-[#5E6C84]">
-            Total Tasks:{" "}
-            <strong className="text-[#172B4D]">
-              {localTasks.length}
-            </strong>
+          <div className="flex items-center space-x-4 text-xs text-[#5E6C84]">
+            <div>
+              Total Tasks:{" "}
+              <strong className="text-[#172B4D]">
+                {localTasks.length}
+              </strong>
+            </div>
+            {isAdminOrOwner && (
+              <Button
+                onClick={() => setShowInviteModal(true)}
+                variant="outline"
+                className="border-[#DFE1E6] text-[#172B4D] hover:bg-[#F4F5F7] text-xs font-semibold rounded-[3px] h-7 px-3 shadow-none"
+              >
+                Invite Team Members
+              </Button>
+            )}
           </div>
         </div>
 
@@ -359,6 +372,14 @@ function ProjectBoardContent() {
           )}
         </div>
       </div>
+
+      <InviteMembersModal
+        isOpen={showInviteModal}
+        onClose={() => setShowInviteModal(false)}
+        projects={projectDetails ? [projectDetails] : []}
+        initialProjectId={projectDetails?.id}
+        isProjectFixed={true}
+      />
     </ProjectLayoutShell>
   );
 }
