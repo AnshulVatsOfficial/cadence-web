@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -32,6 +33,7 @@ export default function InviteMembersModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const router = useRouter();
 
   // Default project selection when opened
   React.useEffect(() => {
@@ -69,7 +71,12 @@ export default function InviteMembersModal({
       }, 2000);
     } catch (err: any) {
       console.error(err);
-      setError(err?.response?.data?.error || "Failed to send invitation.");
+      if (err?.response?.data?.error === "LIMIT_REACHED") {
+        onClose();
+        router.push("/pricing");
+        return;
+      }
+      setError(err?.response?.data?.error || err.response?.data?.message || "Failed to send invitation.");
     } finally {
       setLoading(false);
     }

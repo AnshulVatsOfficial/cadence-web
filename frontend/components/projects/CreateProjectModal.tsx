@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
+import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { api } from "@/lib/api";
@@ -47,6 +48,7 @@ export default function CreateProjectModal({
   onCreateSuccess,
 }: CreateProjectModalProps) {
   const [apiError, setApiError] = useState<string | null>(null);
+  const router = useRouter();
 
   const {
     register,
@@ -73,6 +75,11 @@ export default function CreateProjectModal({
       onCreateSuccess(res.data);
       onClose();
     } catch (err: any) {
+      if (err?.response?.data?.error === "LIMIT_REACHED") {
+        onClose();
+        router.push("/pricing");
+        return;
+      }
       setApiError(
         err?.response?.data?.error || err.message || "Failed to create project.",
       );
