@@ -12,8 +12,11 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/authContext";
 import { api } from "@/lib/api";
+import { ProjectProvider } from "../../components/projects/ProjectContext";
+import ProjectLayoutShell from "../../components/projects/ProjectLayoutShell";
 import CreateProjectModal from "../../components/projects/CreateProjectModal";
 import EditProjectModal from "../../components/projects/EditProjectModal";
+import InviteMembersModal from "../../components/projects/InviteMembersModal";
 import CustomAlertDialog from "../../components/shared/CustomAlertDialog";
 import EmptyState from "../../components/shared/EmptyState";
 import { Button } from "../../components/ui/button";
@@ -36,6 +39,7 @@ export default function ProjectsDashboardPage() {
 
   // Modals state
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState<any | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -110,53 +114,52 @@ export default function ProjectsDashboardPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#FAFBFC] text-[#172B4D] font-sans flex flex-col">
-      {/* ── Responsive Global Header ─────────────────────────────────────── */}
-      <header className="h-[64px] min-h-[64px] px-4 md:px-8 bg-white border-b border-[#DFE1E6] flex items-center justify-between shadow-sm">
-        <div className="flex items-center space-x-2 md:space-x-3">
-          <div className="w-8 h-8 bg-[#0052CC] rounded-[3px] flex items-center justify-center font-bold text-white text-base shadow-sm flex-shrink-0">
-            C
-          </div>
-          <span className="text-sm md:text-base font-bold tracking-tight text-[#172B4D]">
-            Cadence
-          </span>
-        </div>
-        <div className="flex items-center space-x-3 md:space-x-4">
-          <Button
-            onClick={() => setShowCreateModal(true)}
-            className="bg-[#0052CC] hover:bg-[#0747A6] text-white text-xs font-semibold rounded-[3px] h-8 px-3 shadow-none"
-          >
-            Create Project
-          </Button>
-          <UserDropdown />
-        </div>
-      </header>
-
-      {/* ── Main Content Area ────────────────────────────────────────────── */}
-      <main className="flex-grow w-full px-4 md:px-8 py-10 flex flex-col">
-        {/* Title and Controls */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-[#172B4D]">
-              Projects
-            </h1>
-            <p className="text-xs text-[#5E6C84] mt-1 leading-relaxed">
-              Select or create a project to view active boards, sprints, and task timelines.
-            </p>
-          </div>
-          {projects.length > 0 && !loading && (
-            <div className="relative w-full md:w-72">
-              <Search className="w-4.5 h-4.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#5E6C84]" />
-              <input
-                type="text"
-                placeholder="Search projects..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 text-xs bg-white border border-[#DFE1E6] rounded-[3px] focus:outline-none focus:border-[#0052CC] focus:ring-1 focus:ring-[#0052CC] transition-all shadow-sm"
-              />
+    <ProjectProvider>
+      <ProjectLayoutShell>
+        <div className="flex-grow w-full px-4 md:px-8 py-10 flex flex-col bg-[#FAFBFC]">
+          {/* Title and Controls */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-[#172B4D]">
+                Projects
+              </h1>
+              <p className="text-xs text-[#5E6C84] mt-1 leading-relaxed">
+                Select or create a project to view active boards, sprints, and task timelines.
+              </p>
             </div>
-          )}
-        </div>
+            
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={() => setShowInviteModal(true)}
+                disabled={projects.length === 0}
+                variant="outline"
+                className="border-[#DFE1E6] text-[#172B4D] hover:bg-[#F4F5F7] text-xs font-semibold rounded-[3px] h-8 px-3 shadow-none"
+              >
+                Invite Team Members
+              </Button>
+              <Button
+                onClick={() => setShowCreateModal(true)}
+                className="bg-[#0052CC] hover:bg-[#0747A6] text-white text-xs font-semibold rounded-[3px] h-8 px-3 shadow-none"
+              >
+                Create Project
+              </Button>
+            </div>
+          </div>
+
+          <div className="mb-6">
+            {projects.length > 0 && !loading && (
+              <div className="relative w-full md:w-72">
+                <Search className="w-4.5 h-4.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#5E6C84]" />
+                <input
+                  type="text"
+                  placeholder="Search projects..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 text-xs bg-white border border-[#DFE1E6] rounded-[3px] focus:outline-none focus:border-[#0052CC] focus:ring-1 focus:ring-[#0052CC] transition-all shadow-sm"
+                />
+              </div>
+            )}
+          </div>
 
         {/* Loading Skeletons */}
         {loading ? (
@@ -261,9 +264,13 @@ export default function ProjectsDashboardPage() {
             ))}
           </div>
         )}
-      </main>
-
       {/* ── Dialog Modals ──────────────────────────────────────────────── */}
+      <InviteMembersModal
+        isOpen={showInviteModal}
+        onClose={() => setShowInviteModal(false)}
+        projects={projects}
+      />
+
       <CreateProjectModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
@@ -323,6 +330,8 @@ export default function ProjectsDashboardPage() {
           }}
         />
       )}
-    </div>
+        </div>
+      </ProjectLayoutShell>
+    </ProjectProvider>
   );
 }

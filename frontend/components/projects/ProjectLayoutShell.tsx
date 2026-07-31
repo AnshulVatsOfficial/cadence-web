@@ -13,6 +13,7 @@ import {
   Check,
   LogOut,
   User as UserIcon,
+  Mail,
 } from "lucide-react";
 import { useAuth } from "@/lib/authContext";
 import { api } from "@/lib/api";
@@ -141,62 +142,82 @@ export default function ProjectLayoutShell({
                       <Skeleton className="h-2.5 w-1/2 bg-gray-200 animate-pulse" />
                     </div>
                   </div>
-                ) : activeProject ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <SidebarMenuButton size="lg" className="w-full flex items-center justify-between p-2 hover:bg-[#EBECF0] rounded-[3px] border border-transparent hover:border-[#DFE1E6] transition-all group-data-[collapsible=icon]:justify-center">
-                        <div className="flex items-center space-x-2.5 truncate">
-                          <div className="w-8 h-8 bg-[#0052CC] text-white font-bold text-sm rounded-[3px] flex items-center justify-center shadow-sm flex-shrink-0">
-                            {activeProject.name.charAt(0).toUpperCase()}
-                          </div>
-                          <div className="flex flex-col text-left truncate group-data-[collapsible=icon]:hidden">
-                            <span className="text-xs font-bold text-[#172B4D] truncate">
-                              {activeProject.name}
-                            </span>
-                            <span className="text-[10px] text-[#5E6C84] uppercase tracking-wider font-semibold">
-                              {activeProject.projectType || "General Project"}
-                            </span>
-                          </div>
-                        </div>
-                        <ChevronDown className="w-3.5 h-3.5 text-[#5E6C84] flex-shrink-0 ml-1.5 group-data-[collapsible=icon]:hidden" />
-                      </SidebarMenuButton>
-                    </DropdownMenuTrigger>
-                    
-                    <DropdownMenuContent className="w-56 bg-white border border-[#DFE1E6] shadow-md rounded-[3px]" align="start">
-                      <div className="px-2 py-1.5 text-[9px] font-bold text-[#5E6C84] uppercase tracking-wider border-b border-[#F4F5F7] mb-1 select-none">
-                        Switch Project
-                      </div>
-                      
-                      {projects.map((p) => (
-                        <DropdownMenuItem
-                          key={p.id}
-                          onClick={() => handleProjectChange(p)}
-                          style={{ color: "#172B4D" }}
-                          className={`text-xs px-2.5 py-2 rounded-[2px] flex items-center justify-between cursor-pointer hover:bg-[#F4F5F7] ${
-                            p.id === activeProject.id ? "bg-[#DEEBFF] text-[#0747A6] font-semibold" : ""
-                          }`}
-                        >
-                          <span className="truncate">{p.name}</span>
-                          {p.id === activeProject.id && (
-                            <Check className="w-3.5 h-3.5 text-[#0052CC]" />
-                          )}
-                        </DropdownMenuItem>
-                      ))}
-                      
-                      <div className="border-t border-[#F4F5F7] mt-1.5 pt-1">
-                        <DropdownMenuItem
-                          onClick={() => setShowCreateModal(true)}
-                          className="text-xs text-[#0052CC] font-semibold px-2.5 py-2 rounded-[2px] cursor-pointer hover:bg-[#F4F5F7] flex items-center space-x-2"
-                        >
-                          <Plus className="w-3.5 h-3.5" />
-                          <span>Create New Project</span>
-                        </DropdownMenuItem>
-                      </div>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
                 ) : (
-                  <div className="text-center py-2 text-xs text-[#5E6C84] italic">
-                    Select a project
+                  <div className="flex items-center gap-1 w-full group-data-[collapsible=icon]:justify-center">
+                    <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <SidebarMenuButton size="lg" className="w-full flex items-center justify-between p-2 hover:bg-[#EBECF0] rounded-[3px] border border-transparent hover:border-[#DFE1E6] transition-all min-w-0">
+                          <div className="flex items-center space-x-2.5 truncate">
+                            {activeProject ? (
+                              <>
+                                <div className="w-8 h-8 bg-[#0052CC] text-white font-bold text-sm rounded-[3px] flex items-center justify-center shadow-sm flex-shrink-0">
+                                  {activeProject.name.charAt(0).toUpperCase()}
+                                </div>
+                                <div className="flex flex-col text-left truncate group-data-[collapsible=icon]:hidden">
+                                  <span className="text-xs font-bold text-[#172B4D] truncate">
+                                    {activeProject.name}
+                                  </span>
+                                  <span className="text-[10px] text-[#5E6C84] uppercase tracking-wider font-semibold">
+                                    {activeProject.projectType || "General Project"}
+                                  </span>
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <div className="w-8 h-8 bg-[#0052CC] text-white font-bold text-base rounded-[3px] flex items-center justify-center shadow-sm flex-shrink-0">
+                                  C
+                                </div>
+                                <div className="flex flex-col text-left truncate group-data-[collapsible=icon]:hidden">
+                                  <span className="text-sm font-bold text-[#172B4D] truncate">
+                                    Cadence
+                                  </span>
+                                  <span className="text-[10px] text-[#5E6C84] uppercase tracking-wider font-semibold">
+                                    Select a Project
+                                  </span>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                          <ChevronDown className="w-3.5 h-3.5 text-[#5E6C84] flex-shrink-0 ml-1.5 group-data-[collapsible=icon]:hidden" />
+                        </SidebarMenuButton>
+                      </DropdownMenuTrigger>
+                      
+                      <DropdownMenuContent className="w-56 bg-white border border-[#DFE1E6] shadow-md rounded-[3px]" align="start">
+                        <div className="px-2 py-1.5 text-[9px] font-bold text-[#5E6C84] uppercase tracking-wider border-b border-[#F4F5F7] mb-1 select-none">
+                          Switch Project
+                        </div>
+                        
+                        {projects.map((p) => (
+                          <DropdownMenuItem
+                            key={p.id}
+                            onClick={() => handleProjectChange(p)}
+                            style={{ color: "#172B4D" }}
+                            className={`text-xs px-2.5 py-2 rounded-[2px] flex items-center justify-between cursor-pointer hover:bg-[#F4F5F7] ${
+                              activeProject && p.id === activeProject.id ? "bg-[#DEEBFF] text-[#0747A6] font-semibold" : ""
+                            }`}
+                          >
+                            <span className="truncate">{p.name}</span>
+                            {activeProject && p.id === activeProject.id && (
+                              <Check className="w-3.5 h-3.5 text-[#0052CC]" />
+                            )}
+                          </DropdownMenuItem>
+                        ))}
+                        
+                        <div className="border-t border-[#F4F5F7] mt-1.5 pt-1">
+                          <DropdownMenuItem
+                            onClick={() => setShowCreateModal(true)}
+                            className="text-xs text-[#0052CC] font-semibold px-2.5 py-2 rounded-[2px] cursor-pointer hover:bg-[#F4F5F7] flex items-center space-x-2"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                            <span>Create New Project</span>
+                          </DropdownMenuItem>
+                        </div>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    </div>
+                    
+                    <SidebarTrigger className="text-[#5E6C84] hover:text-[#172B4D] hover:bg-[#EBECF0] h-8 w-8 rounded-[3px] flex-shrink-0 hidden md:flex" />
                   </div>
                 )}
               </SidebarMenuItem>
@@ -217,20 +238,35 @@ export default function ProjectLayoutShell({
                 <Home className="w-3.5 h-3.5 flex-shrink-0" />
                 <span className="truncate group-data-[collapsible=icon]:hidden">All Projects</span>
               </SidebarMenuButton>
+
+              <SidebarMenuButton
+                onClick={() => router.push("/projects/invitations")}
+                className={`w-full flex items-center gap-x-2.5 px-2 py-1.5 rounded-[3px] text-left text-xs group-data-[collapsible=icon]:justify-center ${
+                  pathname === "/projects/invitations"
+                    ? "bg-[#DEEBFF] text-[#0747A6] font-semibold"
+                    : "text-[#172B4D] hover:bg-[#EBECF0]"
+                }`}
+              >
+                <Mail className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="truncate group-data-[collapsible=icon]:hidden">Invitations</span>
+              </SidebarMenuButton>
               
-              {activeProject && (
-                <SidebarMenuButton
-                  onClick={() => router.push(`/projects/${projectId}`)}
-                  className={`w-full flex items-center gap-x-2.5 px-2 py-1.5 rounded-[3px] text-left text-xs group-data-[collapsible=icon]:justify-center ${
-                    pathname === `/projects/${projectId}`
-                      ? "bg-[#DEEBFF] text-[#0747A6] font-semibold"
-                      : "text-[#172B4D] hover:bg-[#EBECF0]"
-                  }`}
-                >
-                  <KanbanSquare className="w-3.5 h-3.5 flex-shrink-0" />
-                  <span className="truncate group-data-[collapsible=icon]:hidden">Kanban Board</span>
-                </SidebarMenuButton>
-              )}
+              <SidebarMenuButton
+                onClick={() => {
+                  if (activeProject) router.push(`/projects/${activeProject.id}`);
+                }}
+                disabled={!activeProject}
+                className={`w-full flex items-center gap-x-2.5 px-2 py-1.5 rounded-[3px] text-left text-xs group-data-[collapsible=icon]:justify-center ${
+                  !activeProject ? "opacity-50 cursor-not-allowed" : ""
+                } ${
+                  activeProject && pathname === `/projects/${activeProject.id}`
+                    ? "bg-[#DEEBFF] text-[#0747A6] font-semibold"
+                    : "text-[#172B4D] hover:bg-[#EBECF0]"
+                }`}
+              >
+                <KanbanSquare className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="truncate group-data-[collapsible=icon]:hidden">Board</span>
+              </SidebarMenuButton>
             </div>
           </SidebarContent>
 
@@ -266,7 +302,7 @@ export default function ProjectLayoutShell({
           {/* Main Topbar Header */}
           <header className="flex items-center justify-between px-6 border-b border-[#DFE1E6] h-[64px] min-h-[64px] bg-white select-none">
             <div className="flex items-center space-x-3">
-              <SidebarTrigger className="text-[#5E6C84] hover:text-[#172B4D] hover:bg-[#EBECF0] h-8 w-8 rounded-[3px]" />
+
               {activeProject && (
                 <div className="flex flex-col">
                   <div className="flex items-center space-x-1.5 text-xs text-[#5E6C84]">

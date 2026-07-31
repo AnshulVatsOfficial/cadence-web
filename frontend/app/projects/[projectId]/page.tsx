@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useProject, ProjectProvider } from "../../../components/projects/ProjectContext";
 import ProjectLayoutShell from "../../../components/projects/ProjectLayoutShell";
 import BoardColumn from "../../../components/projects/BoardColumn";
+import InviteMembersModal from "../../../components/projects/InviteMembersModal";
 import { api } from "@/lib/api";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -50,6 +51,7 @@ function ProjectBoardContent() {
   const [localStages, setLocalStages] = useState<any[]>([]);
   const [localTasks, setLocalTasks] = useState<any[]>([]);
   const [showAddColumn, setShowAddColumn] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   const userRole = projectDetails?.role;
@@ -201,7 +203,7 @@ function ProjectBoardContent() {
       <div className="h-full flex flex-col bg-white overflow-hidden">
         {/* Sub-Header Metadata Bar */}
         <div className="px-6 py-3 border-b border-[#DFE1E6] flex items-center justify-between bg-white flex-shrink-0 select-none">
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-4">
             <Badge
               variant="outline"
               className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-[2px] ${getStatusBadgeStyles(
@@ -217,15 +219,25 @@ function ProjectBoardContent() {
                 {projectDetails.role || "MEMBER"}
               </strong>
             </span>
-          </div>
 
-          <div className="flex items-center space-x-4">
-            <div className="text-xs text-[#5E6C84]">
+            <span className="text-xs text-[#5E6C84]">
               Total Tasks:{" "}
               <strong className="text-[#172B4D]">
                 {topLevelTasksCount} ({localTasks.length} total)
               </strong>
-            </div>
+            </span>
+          </div>
+
+          <div className="flex items-center space-x-3">
+            {isAdminOrOwner && (
+              <Button
+                onClick={() => setShowInviteModal(true)}
+                variant="outline"
+                className="border-[#DFE1E6] text-[#172B4D] hover:bg-[#F4F5F7] text-xs font-semibold rounded-[3px] h-8 px-3 shadow-none"
+              >
+                Invite Team Members
+              </Button>
+            )}
 
             {isWritable && (
               <Button
@@ -259,8 +271,8 @@ function ProjectBoardContent() {
                         const matchesStage = t.stageId === stage.id;
                         const matchesSearch = searchQuery
                           ? t.title
-                            .toLowerCase()
-                            .includes(searchQuery.toLowerCase())
+                              .toLowerCase()
+                              .includes(searchQuery.toLowerCase())
                           : true;
                         return matchesStage && matchesSearch;
                       });
@@ -359,6 +371,14 @@ function ProjectBoardContent() {
         {/* Task Modals */}
         <CreateTaskModal />
         <TaskDetailsModal />
+
+        <InviteMembersModal
+          isOpen={showInviteModal}
+          onClose={() => setShowInviteModal(false)}
+          projects={projectDetails ? [projectDetails] : []}
+          initialProjectId={projectDetails?.id}
+          isProjectFixed={true}
+        />
       </div>
     </ProjectLayoutShell>
   );

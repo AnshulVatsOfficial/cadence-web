@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,8 +29,10 @@ const signupSchema = z.object({
 
 type SignupFormValues = z.infer<typeof signupSchema>;
 
-export default function SignupPage() {
+function SignupPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTo = searchParams.get("returnTo") || "/projects";
   const { user, signup, sendMagicLink, loginWithGoogle, loginWithGithub, isLoading: authLoading } = useAuth();
 
   const [error, setError] = useState<string | null>(null);
@@ -70,9 +72,9 @@ export default function SignupPage() {
 
   useEffect(() => {
     if (user && !authLoading) {
-      router.replace("/projects");
+      router.replace(returnTo);
     }
-  }, [user, authLoading, router]);
+  }, [user, authLoading, router, returnTo]);
 
   // Block rendering signup form completely if logged in or checking session
   if (authLoading || user) {
@@ -357,5 +359,18 @@ export default function SignupPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex flex-col items-center justify-center bg-ds-bg-neutral-subtle">
+        <Loader2 className="w-8 h-8 animate-spin text-[#0052CC]" />
+        <p className="mt-3 text-xs text-[#5E6C84] font-medium">Loading...</p>
+      </div>
+    }>
+      <SignupPageContent />
+    </Suspense>
   );
 }
