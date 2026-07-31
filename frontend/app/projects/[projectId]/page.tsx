@@ -15,6 +15,9 @@ import { Input } from "../../../components/ui/input";
 import { Plus } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
+import CreateTaskModal from "../../../components/projects/tasks/CreateTaskModal";
+import TaskDetailsModal from "../../../components/projects/tasks/TaskDetailsModal";
+
 const addColumnSchema = z.object({
   name: z
     .string()
@@ -41,7 +44,7 @@ function getStatusBadgeStyles(status: string) {
 }
 
 function ProjectBoardContent() {
-  const { projectDetails, loadingProjects, fetchProjectDetails } = useProject();
+  const { projectDetails, loadingProjects, fetchProjectDetails, openCreateTaskModal } = useProject();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [localStages, setLocalStages] = useState<any[]>([]);
@@ -114,39 +117,19 @@ function ProjectBoardContent() {
     }
 
     if (type === "TASK") {
-      const sourceColumnId = source.droppableId;
       const destColumnId = destination.droppableId;
 
       const draggedTask = localTasks.find((t) => t.id === draggableId);
       if (!draggedTask) return;
 
-      const updatedTasks = Array.from(localTasks);
-      const modifiedTask = { ...draggedTask, stageId: destColumnId };
-
-      const oldIndex = updatedTasks.findIndex((t) => t.id === draggableId);
-      if (oldIndex !== -1) {
-        updatedTasks.splice(oldIndex, 1);
-      }
-
-      const destTasks = updatedTasks.filter((t) => t.stageId === destColumnId);
-
-      let globalInsertIndex = updatedTasks.length;
-      if (destination.index < destTasks.length) {
-        const targetTaskAtDest = destTasks[destination.index];
-        globalInsertIndex = updatedTasks.findIndex(
-          (t) => t.id === targetTaskAtDest.id,
-        );
-      } else {
-        if (destTasks.length > 0) {
-          const lastTaskAtDest = destTasks[destTasks.length - 1];
-          globalInsertIndex =
-            updatedTasks.findIndex((t) => t.id === lastTaskAtDest.id) + 1;
-        } else {
-          globalInsertIndex = updatedTasks.length;
+      // Update stageId for parent task AND all its subtasks locally
+      const updatedTasks = localTasks.map((t) => {
+        if (t.id === draggableId || t.parentTaskId === draggableId) {
+          return { ...t, stageId: destColumnId };
         }
-      }
+        return t;
+      });
 
-      updatedTasks.splice(globalInsertIndex, 0, modifiedTask);
       setLocalTasks(updatedTasks);
 
       try {
@@ -208,6 +191,8 @@ function ProjectBoardContent() {
     );
   }
 
+  const topLevelTasksCount = localTasks.filter((t) => !t.parentTaskId).length;
+
   return (
     <ProjectLayoutShell
       searchQuery={searchQuery}
@@ -234,11 +219,23 @@ function ProjectBoardContent() {
             </span>
           </div>
 
-          <div className="text-xs text-[#5E6C84]">
-            Total Tasks:{" "}
-            <strong className="text-[#172B4D]">
-              {localTasks.length}
-            </strong>
+          <div className="flex items-center space-x-4">
+            <div className="text-xs text-[#5E6C84]">
+              Total Tasks:{" "}
+              <strong className="text-[#172B4D]">
+                {topLevelTasksCount} ({localTasks.length} total)
+              </strong>
+            </div>
+
+            {isWritable && (
+              <Button
+                onClick={() => openCreateTaskModal()}
+                className="h-8 text-xs bg-[#0052CC] hover:bg-[#0747A6] text-white px-3 rounded-[3px] font-semibold flex items-center space-x-1.5"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Create Task</span>
+              </Button>
+            )}
           </div>
         </div>
 
@@ -358,6 +355,10 @@ function ProjectBoardContent() {
             </div>
           )}
         </div>
+
+        {/* Task Modals */}
+        <CreateTaskModal />
+        <TaskDetailsModal />
       </div>
     </ProjectLayoutShell>
   );

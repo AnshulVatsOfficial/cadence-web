@@ -8,12 +8,14 @@ import {
   DialogTitle,
   DialogDescription,
 } from "../ui/dialog";
+import { cn } from "@/lib/utils";
 
 interface CustomDialogProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
   description?: string;
+  className?: string;
   children: React.ReactNode;
 }
 
@@ -22,12 +24,18 @@ export default function CustomDialog({
   onClose,
   title,
   description,
+  className,
   children,
 }: CustomDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="bg-white max-w-md border border-[#DFE1E6] rounded-[4px] p-6 focus:outline-none">
-        <DialogHeader className="space-y-1 pb-3 border-b border-[#DFE1E6]">
+      <DialogContent
+        className={cn(
+          "bg-white w-full max-w-lg sm:max-w-xl max-h-[88vh] flex flex-col border border-[#DFE1E6] rounded-[6px] p-6 shadow-2xl focus:outline-none overflow-hidden",
+          className,
+        )}
+      >
+        <DialogHeader className="space-y-1 pb-3 border-b border-[#DFE1E6] flex-shrink-0">
           <DialogTitle className="text-base font-bold text-[#172B4D]">
             {title}
           </DialogTitle>
@@ -37,7 +45,9 @@ export default function CustomDialog({
             </DialogDescription>
           )}
         </DialogHeader>
-        <div className="pt-4">{children}</div>
+        <div className="flex-1 overflow-y-auto pt-4 pr-1 custom-scrollbar">
+          {children}
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -9,40 +9,16 @@ import { api } from "@/lib/api";
 import { Trash2, Plus, X, Edit2, Check } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { Textarea } from "../ui/textarea";
 import { Spinner } from "../ui/spinner";
 import { Droppable, Draggable } from "@hello-pangea/dnd";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../ui/tooltip";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "../ui/alert-dialog";
+import TaskCard from "./tasks/TaskCard";
+import CustomAlertDialog from "../shared/CustomAlertDialog";
 
-// Zod schemas for validation
 const renameColumnSchema = z.object({
   name: z
     .string()
     .min(2, "Column name must be at least 2 characters")
     .max(50, "Column name cannot exceed 50 characters")
-    .trim(),
-});
-
-const createTaskSchema = z.object({
-  title: z
-    .string()
-    .min(3, "Task title must be at least 3 characters")
-    .max(150, "Task title cannot exceed 150 characters")
     .trim(),
 });
 
@@ -57,29 +33,23 @@ export default function BoardColumn({
   stage,
   tasks,
   dragHandleProps,
-  index,
 }: BoardColumnProps) {
-  const { projectDetails, fetchProjectDetails } = useProject();
+  const { projectDetails, fetchProjectDetails, openCreateTaskModal } = useProject();
 
   const userRole = projectDetails?.role;
   const isWritable = projectDetails?.status !== "INACTIVE";
   const isAdminOrOwner = userRole === "OWNER" || userRole === "ADMIN";
 
   const [isEditingName, setIsEditingName] = useState(false);
-  const [showAddTask, setShowAddTask] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
-  
-  // Deletion States
   const [showDeleteColumnConfirm, setShowDeleteColumnConfirm] = useState(false);
   const [isDeletingColumn, setIsDeletingColumn] = useState(false);
-  const [taskToDelete, setTaskToDelete] = useState<any | null>(null);
-  const [isDeletingTask, setIsDeletingTask] = useState(false);
 
   // Column renaming form
   const {
     register: registerRename,
     handleSubmit: handleRenameSubmit,
-    formState: { errors: renameErrors, isValid: isRenameValid },
+    formState: { isValid: isRenameValid },
     reset: resetRename,
   } = useForm({
     mode: "onChange",
@@ -87,17 +57,8 @@ export default function BoardColumn({
     defaultValues: { name: stage.name },
   });
 
-  // Task creation form
-  const {
-    register: registerTask,
-    handleSubmit: handleTaskSubmit,
-    formState: { errors: taskErrors, isValid: isTaskValid, isSubmitting: isTaskSubmitting },
-    reset: resetTask,
-  } = useForm({
-    mode: "onChange",
-    resolver: zodResolver(createTaskSchema),
-    defaultValues: { title: "" },
-  });
+  // Filter tasks to show top-level parent tasks in the column (subtasks are rendered nested within TaskCard)
+  const parentTasksInColumn = tasks.filter((t: any) => !t.parentTaskId);
 
   // Handle column rename
   const onRename = async (data: { name: string }) => {
@@ -133,61 +94,12 @@ export default function BoardColumn({
     }
   };
 
-  // Handle task delete
-  const onDeleteTask = async () => {
-    if (!taskToDelete || !isWritable) return;
-    try {
-      setIsDeletingTask(true);
-      await api.delete(`/projects/${projectDetails.id}/tasks/${taskToDelete.id}`);
-      setTaskToDelete(null);
-      await fetchProjectDetails();
-    } catch (err: any) {
-      console.error(err);
-      alert(err?.response?.data?.error || "Error deleting task.");
-    } finally {
-      setIsDeletingTask(false);
-    }
-  };
-
-  // Handle task create
-  const onAddTask = async (data: { title: string }) => {
-    if (!isWritable) return;
-    try {
-      await api.post(`/projects/${projectDetails.id}/tasks`, {
-        title: data.title,
-        stageId: stage.id,
-      });
-      resetTask();
-      setShowAddTask(false);
-      await fetchProjectDetails();
-    } catch (err: any) {
-      console.error(err);
-      alert(err?.response?.data?.error || "Error creating task.");
-    }
-  };
-
-  // Render priority icon helper
-  const renderPriorityIcon = (priority: string) => {
-    switch (priority.toUpperCase()) {
-      case "URGENT":
-        return <span className="text-[#DE350B] font-bold text-xs">↑</span>;
-      case "HIGH":
-        return <span className="text-[#FF5630] font-bold text-xs">↑</span>;
-      case "MEDIUM":
-        return <span className="text-[#FFAB00] font-bold text-xs">═</span>;
-      case "LOW":
-        return <span className="text-[#36B37E] font-bold text-xs">↓</span>;
-      default:
-        return null;
-    }
-  };
-
   return (
     <div className="flex flex-col w-72 rounded-[4px] border transition-all select-none max-h-full flex-shrink-0 bg-[#F4F5F7] border-[#DFE1E6]">
       {/* Column Header */}
       <div
         {...dragHandleProps}
-        className={`flex items-center justify-between px-3 py-2.5 cursor-grab active:cursor-grabbing border-b border-transparent ${
+        className={`flex items-center justify-between px-3 py-2.5 cursor-grab active:cursor-grabbing border-b border-[#DFE1E6]/60 ${
           isAdminOrOwner && isWritable ? "hover:bg-[#EBECF0]" : ""
         }`}
       >
@@ -238,7 +150,7 @@ export default function BoardColumn({
                 {stage.name}
               </span>
               <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#E3E6EA] text-[#5E6C84]">
-                {tasks.length}
+                {parentTasksInColumn.length}
               </span>
               {isAdminOrOwner && isWritable && (
                 <Button
@@ -273,183 +185,53 @@ export default function BoardColumn({
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className={`flex-1 overflow-y-auto px-2 py-3 space-y-2 max-h-[calc(100vh-250px)] transition-colors ${
+            className={`flex-1 overflow-y-auto px-2 py-3 space-y-2 max-h-[calc(100vh-250px)] transition-colors min-h-[80px] ${
               snapshot.isDraggingOver ? "bg-[#DEEBFF]/35" : ""
             }`}
           >
-            {tasks.map((task, idx) => {
-              const mainAssignee = task.assignees?.[0]?.user;
-              const assigneeInitials = mainAssignee?.name
-                ? mainAssignee.name
-                    .split(" ")
-                    .map((n: string) => n[0])
-                    .join("")
-                    .toUpperCase()
-                : "U";
-
-              return (
-                <Draggable key={task.id} draggableId={task.id} index={idx} isDragDisabled={!isWritable}>
-                  {(draggableProvided) => (
-                    <div
-                      ref={draggableProvided.innerRef}
-                      {...draggableProvided.draggableProps}
-                      {...draggableProvided.dragHandleProps}
-                      className="bg-white border border-[#DFE1E6] rounded-[3px] p-3 shadow-sm hover:border-[#4c86e0] transition-all cursor-grab active:cursor-grabbing group relative"
-                    >
-                      {/* Trash Button for Tasks */}
-                      {isWritable && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon-xs"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setTaskToDelete(task);
-                          }}
-                          className="absolute top-2 right-2 h-6 w-6 p-1 rounded-[3px] opacity-0 group-hover:opacity-100 transition-opacity text-[#5E6C84] hover:bg-[#FFEBEB] hover:text-[#DE350B]"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      )}
-
-                      <h4 className="text-xs font-semibold text-[#172B4D] leading-relaxed mb-1 pr-5 group-hover:text-[#0052CC] transition-colors">
-                        {task.title}
-                      </h4>
-                      {task.description && (
-                        <p className="text-[11px] text-[#5E6C84] line-clamp-2 mb-3">
-                          {typeof task.description === "string"
-                            ? task.description
-                            : JSON.stringify(task.description)}
-                        </p>
-                      )}
-
-                      <div className="flex items-center justify-between mt-2 pt-2 border-t border-[#F4F5F7]">
-                        <div className="flex items-center space-x-1.5">
-                          {renderPriorityIcon(task.priority)}
-                          <span className="text-[10px] font-semibold text-[#5E6C84] uppercase">
-                            {task.priority}
-                          </span>
-                        </div>
-
-                        {mainAssignee && (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div className="w-5 h-5 rounded-full bg-[#0052CC] text-white text-[9px] font-bold flex items-center justify-center border border-white">
-                                  {assigneeInitials}
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="text-xs">{mainAssignee.name || mainAssignee.email}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </Draggable>
-              );
-            })}
+            {parentTasksInColumn.map((task, idx) => (
+              <Draggable key={task.id} draggableId={task.id} index={idx} isDragDisabled={!isWritable}>
+                {(draggableProvided) => (
+                  <div
+                    ref={draggableProvided.innerRef}
+                    {...draggableProvided.draggableProps}
+                    {...draggableProvided.dragHandleProps}
+                  >
+                    <TaskCard task={task} isWritable={isWritable} />
+                  </div>
+                )}
+              </Draggable>
+            ))}
             {provided.placeholder}
           </div>
         )}
       </Droppable>
 
       {/* Footer Add Task Area */}
-      <div className="p-2 border-t border-transparent">
-        {showAddTask ? (
-          <form onSubmit={handleTaskSubmit(onAddTask)} className="space-y-2 bg-white p-2 border border-[#DFE1E6] rounded-[3px] shadow-sm">
-            <Textarea
-              {...registerTask("title")}
-              autoFocus
-              placeholder="What needs to be done?"
-              rows={2}
-              className="text-xs resize-none p-1.5 border-[#DFE1E6] rounded-[3px] focus-visible:ring-1 focus-visible:ring-[#0052CC]"
-            />
-            {taskErrors.title && (
-              <p className="text-[10px] text-red-600 font-medium">{taskErrors.title.message}</p>
-            )}
-            <div className="flex items-center space-x-1.5">
-              <Button
-                type="submit"
-                size="sm"
-                disabled={!isTaskValid || isTaskSubmitting}
-                className="bg-[#0052CC] hover:bg-[#0747A6] text-white text-[10px] h-7 px-2.5 rounded-[3px] disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isTaskSubmitting ? "Adding..." : "Add"}
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setShowAddTask(false);
-                  resetTask();
-                }}
-                className="text-[#5E6C84] hover:bg-[#EBECF0] text-[10px] h-7 px-2 rounded-[3px]"
-              >
-                Cancel
-              </Button>
-            </div>
-          </form>
-        ) : (
-          isWritable && (
-            <Button
-              variant="ghost"
-              onClick={() => setShowAddTask(true)}
-              className="w-full flex items-center justify-start space-x-1.5 text-xs text-[#5E6C84] hover:text-[#172B4D] hover:bg-[#EBECF0] h-8 py-1 px-2 rounded-[3px] transition-colors text-left font-normal"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Create issue</span>
-            </Button>
-          )
-        )}
-      </div>
+      {isWritable && (
+        <div className="p-2 border-t border-[#DFE1E6]/50">
+          <Button
+            variant="ghost"
+            onClick={() => openCreateTaskModal({ stageId: stage.id })}
+            className="w-full flex items-center justify-start space-x-1.5 text-xs text-[#5E6C84] hover:text-[#172B4D] hover:bg-[#EBECF0] h-8 py-1 px-2 rounded-[3px] transition-colors text-left font-normal"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Create issue</span>
+          </Button>
+        </div>
+      )}
 
       {/* Custom Alert Dialog for Deleting Column */}
-      <AlertDialog open={showDeleteColumnConfirm} onOpenChange={setShowDeleteColumnConfirm}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Column</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete the column "{stage.name}"? This action cannot be undone and will permanently delete all tasks inside this column.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              onClick={onDeleteColumn}
-              disabled={isDeletingColumn}
-            >
-              {isDeletingColumn ? "Deleting..." : "Delete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Custom Alert Dialog for Deleting Task */}
-      <AlertDialog open={!!taskToDelete} onOpenChange={(open) => !open && setTaskToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Task</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete the task "{taskToDelete?.title}"? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              onClick={onDeleteTask}
-              disabled={isDeletingTask}
-            >
-              {isDeletingTask ? "Deleting..." : "Delete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <CustomAlertDialog
+        isOpen={showDeleteColumnConfirm}
+        onClose={() => setShowDeleteColumnConfirm(false)}
+        onConfirm={onDeleteColumn}
+        title="Delete Column"
+        description={`Are you sure you want to delete column "${stage.name}"? This will permanently delete the column and any tasks within it.`}
+        confirmText="Delete"
+        variant="danger"
+        isLoading={isDeletingColumn}
+      />
     </div>
   );
 }
