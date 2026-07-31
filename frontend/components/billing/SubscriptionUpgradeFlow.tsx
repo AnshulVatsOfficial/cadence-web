@@ -59,13 +59,33 @@ export default function SubscriptionUpgradeFlow({
   alertMessage = "Your plan has reached its limits. To achieve this, please upgrade your plan.",
 }: SubscriptionUpgradeFlowProps) {
   const [step, setStep] = useState<Step>("alert");
-  const [selectedTier, setSelectedTier] = useState<typeof tiers[0] | null>(null);
+  const [selectedTier, setSelectedTier] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [amountDue, setAmountDue] = useState<number | null>(null);
+  const [isCalculating, setIsCalculating] = useState(false);
 
   const handleClose = () => {
     setStep("alert");
     setSelectedTier(null);
     onClose();
+  };
+
+  const handleSelectTier = async (tier: any) => {
+    setSelectedTier(tier);
+    setStep("confirm");
+    setAmountDue(null);
+    if (tier.priceId) {
+      setIsCalculating(true);
+      try {
+        const res = await api.get(`/stripe/preview-proration?priceId=${tier.priceId}`);
+        setAmountDue(res.data.amountDue);
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to calculate prorated amount.");
+      } finally {
+        setIsCalculating(false);
+      }
+    }
   };
 
   const handleSubscribe = async () => {
@@ -76,13 +96,17 @@ export default function SubscriptionUpgradeFlow({
 
     try {
       setLoading(true);
-      const res = await api.post("/stripe/checkout", { priceId: selectedTier.priceId });
+      const res = await api.post("/stripe/update-subscription", { priceId: selectedTier.priceId });
       if (res.data.url) {
         window.location.href = res.data.url;
+      } else if (res.data.success) {
+        toast.success("Subscription updated successfully!");
+        handleClose();
+        window.location.reload();
       }
     } catch (error: any) {
       console.error(error);
-      toast.error("Failed to start checkout process.");
+      toast.error("Failed to update subscription.");
       setLoading(false);
     }
   };
@@ -159,8 +183,7 @@ export default function SubscriptionUpgradeFlow({
                   disabled={tier.name === "FREE"}
                   onClick={() => {
                     if (tier.name !== "FREE") {
-                      setSelectedTier(tier);
-                      setStep("confirm");
+                      handleSelectTier(tier);
                     }
                   }}
                 >
@@ -192,10 +215,18 @@ export default function SubscriptionUpgradeFlow({
             </div>
             <div className="flex justify-between items-center text-sm border-t border-[#DFE1E6] pt-3">
               <span className="text-[#5E6C84]">Total Due Today</span>
-              <span className="font-bold text-[#172B4D] text-lg">{selectedTier.price}</span>
+              <span className="font-bold text-[#172B4D] text-lg">
+                {isCalculating ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-[#0052CC] inline" />
+                ) : amountDue !== null ? (
+                  `$${(amountDue / 100).toFixed(2)}`
+                ) : (
+                  selectedTier.price
+                )}
+              </span>
             </div>
             <p className="text-xs text-[#5E6C84] mt-2">
-              Note: If you are upgrading from another paid plan, Stripe will automatically prorate your payment.
+              Note: This amount reflects prorated charges based on your current subscription status and billing cycle.
             </p>
           </div>
 

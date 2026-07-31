@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import ProjectLayoutShell from "@/components/projects/ProjectLayoutShell";
 import { ProjectProvider } from "@/components/projects/ProjectContext";
+import CustomDialog from "@/components/shared/CustomDialog";
 
 const tiers = [
   {
@@ -51,6 +52,9 @@ export default function BillingPage() {
   const [invoices, setInvoices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [confirmingTier, setConfirmingTier] = useState<any>(null);
+  const [amountDue, setAmountDue] = useState<number | null>(null);
+  const [isCalculating, setIsCalculating] = useState(false);
 
   useEffect(() => {
     fetchBillingData();
@@ -73,26 +77,42 @@ export default function BillingPage() {
     }
   };
 
-  const handleSubscribe = async (priceId: string | undefined, tierId: string) => {
-    if (!priceId) {
-      toast.error("Price ID not configured for this tier.");
-      return;
-    }
+  const handleUpgradeClick = async (tier: any) => {
+    if (tier.id === "tier-free") return;
     
-    // Can't checkout free tier
-    if (tierId === "tier-free") {
-      return;
+    setConfirmingTier(tier);
+    setAmountDue(null);
+    if (tier.priceId) {
+      setIsCalculating(true);
+      try {
+        const res = await api.get(`/stripe/preview-proration?priceId=${tier.priceId}`);
+        setAmountDue(res.data.amountDue);
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to calculate prorated amount.");
+      } finally {
+        setIsCalculating(false);
+      }
     }
+  };
+
+  const handleConfirmSubscribe = async () => {
+    if (!confirmingTier || !confirmingTier.priceId) return;
 
     try {
-      setActionLoading(tierId);
-      const res = await api.post("/stripe/checkout", { priceId });
+      setActionLoading(confirmingTier.id);
+      const res = await api.post("/stripe/update-subscription", { priceId: confirmingTier.priceId });
       if (res.data.url) {
         window.location.href = res.data.url;
+      } else if (res.data.success) {
+        toast.success("Subscription updated successfully!");
+        setConfirmingTier(null);
+        fetchBillingData();
       }
     } catch (error: any) {
       console.error(error);
-      toast.error("Failed to start checkout process.");
+      toast.error("Failed to update subscription.");
+    } finally {
       setActionLoading(null);
     }
   };
@@ -174,7 +194,7 @@ export default function BillingPage() {
                         className="w-full mt-auto"
                         variant={isCurrent ? "outline" : "default"}
                         disabled={isCurrent || actionLoading === tier.id || tier.name === "FREE"}
-                        onClick={() => handleSubscribe(tier.priceId, tier.id)}
+                        onClick={() => handleUpgradeClick(tier)}
                       >
                         {actionLoading === tier.id ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
@@ -310,6 +330,54 @@ export default function BillingPage() {
         </div>
         </div>
       </ProjectLayoutShell>
+
+      {confirmingTier && (
+        <CustomDialog
+          isOpen={true}
+          onClose={() => setConfirmingTier(null)}
+          title="Confirm Subscription"
+          description="You are about to upgrade your workspace."
+        >
+          <div className="bg-[#FAFBFC] border border-[#DFE1E6] rounded-md p-4 mb-6 mt-2">
+            <div className="flex items-center gap-3 mb-3">
+              <CreditCard className="w-5 h-5 text-[#0052CC]" />
+              <h3 className="font-semibold text-[#172B4D]">{confirmingTier.name} Plan</h3>
+            </div>
+            <div className="flex justify-between items-center text-sm border-t border-[#DFE1E6] pt-3">
+              <span className="text-[#5E6C84]">Total Due Today</span>
+              <span className="font-bold text-[#172B4D] text-lg">
+                {isCalculating ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-[#0052CC] inline" />
+                ) : amountDue !== null ? (
+                  `$${(amountDue / 100).toFixed(2)}`
+                ) : (
+                  confirmingTier.price
+                )}
+              </span>
+            </div>
+            <p className="text-xs text-[#5E6C84] mt-2">
+              Note: This amount reflects prorated charges based on your current subscription status and billing cycle.
+            </p>
+          </div>
+
+          <div className="flex justify-end gap-3">
+            <Button variant="outline" onClick={() => setConfirmingTier(null)} disabled={!!actionLoading}>
+              Back
+            </Button>
+            <Button
+              onClick={handleConfirmSubscribe}
+              disabled={!!actionLoading || isCalculating}
+              className="bg-[#0052CC] hover:bg-[#0047B3] text-white flex items-center gap-2"
+            >
+              {actionLoading === confirmingTier.id ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                "Proceed to Pay"
+              )}
+            </Button>
+          </div>
+        </CustomDialog>
+      )}
     </ProjectProvider>
   );
 }
