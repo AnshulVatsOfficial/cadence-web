@@ -11,6 +11,7 @@ import {
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { api } from "@/lib/api";
+import { useProject } from "./ProjectContext";
 
 interface InviteMembersModalProps {
   isOpen: boolean;
@@ -34,6 +35,7 @@ export default function InviteMembersModal({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const router = useRouter();
+  const { triggerSubscriptionUpgrade } = useProject();
 
   // Default project selection when opened
   React.useEffect(() => {
@@ -73,7 +75,7 @@ export default function InviteMembersModal({
       console.error(err);
       if (err?.response?.data?.error === "LIMIT_REACHED") {
         onClose();
-        router.push("/pricing");
+        triggerSubscriptionUpgrade("You've reached the maximum number of team members allowed on your current plan. Please upgrade to invite more members.");
         return;
       }
       setError(err?.response?.data?.error || err.response?.data?.message || "Failed to send invitation.");

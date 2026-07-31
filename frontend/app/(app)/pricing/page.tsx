@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import api from "@/lib/api";
+import { api } from "@/lib/api";
 
 const tiers = [
   {

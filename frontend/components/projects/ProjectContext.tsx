@@ -28,6 +28,11 @@ interface ProjectContextProps {
   setShowEditModal: (open: boolean) => void;
   showDeleteModal: boolean;
   setShowDeleteModal: (open: boolean) => void;
+
+  triggerSubscriptionUpgrade: (message: string) => void;
+  showUpgradeModal: boolean;
+  setShowUpgradeModal: (open: boolean) => void;
+  upgradeAlertMessage: string;
 }
 
 const ProjectContext = createContext<ProjectContextProps | undefined>(
@@ -51,6 +56,14 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeAlertMessage, setUpgradeAlertMessage] = useState("");
+
+  const triggerSubscriptionUpgrade = useCallback((message: string) => {
+    setUpgradeAlertMessage(message);
+    setShowUpgradeModal(true);
+  }, []);
 
   // Fetch all projects for user
   const fetchProjects = useCallback(async () => {
@@ -127,6 +140,10 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
         setShowEditModal,
         showDeleteModal,
         setShowDeleteModal,
+        showUpgradeModal,
+        setShowUpgradeModal,
+        upgradeAlertMessage,
+        triggerSubscriptionUpgrade,
       }}
     >
       {children}
