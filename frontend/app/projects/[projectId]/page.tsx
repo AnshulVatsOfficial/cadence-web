@@ -16,6 +16,9 @@ import { Input } from "../../../components/ui/input";
 import { Plus } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
+import CreateTaskModal from "../../../components/projects/tasks/CreateTaskModal";
+import TaskDetailsModal from "../../../components/projects/tasks/TaskDetailsModal";
+
 const addColumnSchema = z.object({
   name: z
     .string()
@@ -42,7 +45,7 @@ function getStatusBadgeStyles(status: string) {
 }
 
 function ProjectBoardContent() {
-  const { projectDetails, loadingProjects, fetchProjectDetails } = useProject();
+  const { projectDetails, loadingProjects, fetchProjectDetails, openCreateTaskModal } = useProject();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [localStages, setLocalStages] = useState<any[]>([]);
@@ -116,39 +119,19 @@ function ProjectBoardContent() {
     }
 
     if (type === "TASK") {
-      const sourceColumnId = source.droppableId;
       const destColumnId = destination.droppableId;
 
       const draggedTask = localTasks.find((t) => t.id === draggableId);
       if (!draggedTask) return;
 
-      const updatedTasks = Array.from(localTasks);
-      const modifiedTask = { ...draggedTask, stageId: destColumnId };
-
-      const oldIndex = updatedTasks.findIndex((t) => t.id === draggableId);
-      if (oldIndex !== -1) {
-        updatedTasks.splice(oldIndex, 1);
-      }
-
-      const destTasks = updatedTasks.filter((t) => t.stageId === destColumnId);
-
-      let globalInsertIndex = updatedTasks.length;
-      if (destination.index < destTasks.length) {
-        const targetTaskAtDest = destTasks[destination.index];
-        globalInsertIndex = updatedTasks.findIndex(
-          (t) => t.id === targetTaskAtDest.id,
-        );
-      } else {
-        if (destTasks.length > 0) {
-          const lastTaskAtDest = destTasks[destTasks.length - 1];
-          globalInsertIndex =
-            updatedTasks.findIndex((t) => t.id === lastTaskAtDest.id) + 1;
-        } else {
-          globalInsertIndex = updatedTasks.length;
+      // Update stageId for parent task AND all its subtasks locally
+      const updatedTasks = localTasks.map((t) => {
+        if (t.id === draggableId || t.parentTaskId === draggableId) {
+          return { ...t, stageId: destColumnId };
         }
-      }
+        return t;
+      });
 
-      updatedTasks.splice(globalInsertIndex, 0, modifiedTask);
       setLocalTasks(updatedTasks);
 
       try {
@@ -210,6 +193,8 @@ function ProjectBoardContent() {
     );
   }
 
+  const topLevelTasksCount = localTasks.filter((t) => !t.parentTaskId).length;
+
   return (
     <ProjectLayoutShell
       searchQuery={searchQuery}
@@ -218,7 +203,7 @@ function ProjectBoardContent() {
       <div className="h-full flex flex-col bg-white overflow-hidden">
         {/* Sub-Header Metadata Bar */}
         <div className="px-6 py-3 border-b border-[#DFE1E6] flex items-center justify-between bg-white flex-shrink-0 select-none">
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-4">
             <Badge
               variant="outline"
               className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-[2px] ${getStatusBadgeStyles(
@@ -234,22 +219,33 @@ function ProjectBoardContent() {
                 {projectDetails.role || "MEMBER"}
               </strong>
             </span>
-          </div>
 
-          <div className="flex items-center space-x-4 text-xs text-[#5E6C84]">
-            <div>
+            <span className="text-xs text-[#5E6C84]">
               Total Tasks:{" "}
               <strong className="text-[#172B4D]">
-                {localTasks.length}
+                {topLevelTasksCount} ({localTasks.length} total)
               </strong>
-            </div>
+            </span>
+          </div>
+
+          <div className="flex items-center space-x-3">
             {isAdminOrOwner && (
               <Button
                 onClick={() => setShowInviteModal(true)}
                 variant="outline"
-                className="border-[#DFE1E6] text-[#172B4D] hover:bg-[#F4F5F7] text-xs font-semibold rounded-[3px] h-7 px-3 shadow-none"
+                className="border-[#DFE1E6] text-[#172B4D] hover:bg-[#F4F5F7] text-xs font-semibold rounded-[3px] h-8 px-3 shadow-none"
               >
                 Invite Team Members
+              </Button>
+            )}
+
+            {isWritable && (
+              <Button
+                onClick={() => openCreateTaskModal()}
+                className="h-8 text-xs bg-[#0052CC] hover:bg-[#0747A6] text-white px-3 rounded-[3px] font-semibold flex items-center space-x-1.5"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Create Task</span>
               </Button>
             )}
           </div>
@@ -275,8 +271,8 @@ function ProjectBoardContent() {
                         const matchesStage = t.stageId === stage.id;
                         const matchesSearch = searchQuery
                           ? t.title
-                            .toLowerCase()
-                            .includes(searchQuery.toLowerCase())
+                              .toLowerCase()
+                              .includes(searchQuery.toLowerCase())
                           : true;
                         return matchesStage && matchesSearch;
                       });
@@ -371,15 +367,19 @@ function ProjectBoardContent() {
             </div>
           )}
         </div>
-      </div>
 
-      <InviteMembersModal
-        isOpen={showInviteModal}
-        onClose={() => setShowInviteModal(false)}
-        projects={projectDetails ? [projectDetails] : []}
-        initialProjectId={projectDetails?.id}
-        isProjectFixed={true}
-      />
+        {/* Task Modals */}
+        <CreateTaskModal />
+        <TaskDetailsModal />
+
+        <InviteMembersModal
+          isOpen={showInviteModal}
+          onClose={() => setShowInviteModal(false)}
+          projects={projectDetails ? [projectDetails] : []}
+          initialProjectId={projectDetails?.id}
+          isProjectFixed={true}
+        />
+      </div>
     </ProjectLayoutShell>
   );
 }
