@@ -31,6 +31,10 @@ interface ProjectContextProps {
   showDeleteModal: boolean;
   setShowDeleteModal: (open: boolean) => void;
 
+  triggerSubscriptionUpgrade: (message: string) => void;
+  showUpgradeModal: boolean;
+  setShowUpgradeModal: (open: boolean) => void;
+  upgradeAlertMessage: string;
   // Task Modals & Active Task state
   selectedTask: any | null;
   setSelectedTask: (task: any | null) => void;
@@ -66,6 +70,13 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeAlertMessage, setUpgradeAlertMessage] = useState("");
+
+  const triggerSubscriptionUpgrade = useCallback((message: string) => {
+    setUpgradeAlertMessage(message);
+    setShowUpgradeModal(true);
+  }, []);
   // Task Modals States
   const [selectedTask, setSelectedTask] = useState<any | null>(null);
   const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
@@ -177,6 +188,10 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
         setShowEditModal,
         showDeleteModal,
         setShowDeleteModal,
+        showUpgradeModal,
+        setShowUpgradeModal,
+        upgradeAlertMessage,
+        triggerSubscriptionUpgrade,
         selectedTask,
         setSelectedTask,
         showCreateTaskModal,

@@ -15,8 +15,8 @@ interface CustomDialogProps {
   onClose: () => void;
   title: string;
   description?: string;
-  className?: string;
   children: React.ReactNode;
+  className?: string;
 }
 
 export default function CustomDialog({
@@ -24,8 +24,8 @@ export default function CustomDialog({
   onClose,
   title,
   description,
-  className,
   children,
+  className = "max-w-md",
 }: CustomDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>

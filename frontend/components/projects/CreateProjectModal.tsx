@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
+import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { api } from "@/lib/api";
@@ -18,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { useProject } from "./ProjectContext";
 
 const projectSchema = z.object({
   name: z
@@ -47,6 +49,8 @@ export default function CreateProjectModal({
   onCreateSuccess,
 }: CreateProjectModalProps) {
   const [apiError, setApiError] = useState<string | null>(null);
+  const router = useRouter();
+  const { triggerSubscriptionUpgrade } = useProject();
 
   const {
     register,
@@ -73,6 +77,11 @@ export default function CreateProjectModal({
       onCreateSuccess(res.data);
       onClose();
     } catch (err: any) {
+      if (err?.response?.data?.error === "LIMIT_REACHED") {
+        onClose();
+        triggerSubscriptionUpgrade("You've reached the maximum number of projects allowed on your current plan. Please upgrade to create more projects.");
+        return;
+      }
       setApiError(
         err?.response?.data?.error || err.message || "Failed to create project.",
       );

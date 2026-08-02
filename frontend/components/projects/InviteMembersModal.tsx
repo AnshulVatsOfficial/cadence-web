@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +11,7 @@ import {
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { api } from "@/lib/api";
+import { useProject } from "./ProjectContext";
 
 interface InviteMembersModalProps {
   isOpen: boolean;
@@ -32,6 +34,8 @@ export default function InviteMembersModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const router = useRouter();
+  const { triggerSubscriptionUpgrade } = useProject();
 
   // Default project selection when opened
   React.useEffect(() => {
@@ -69,7 +73,12 @@ export default function InviteMembersModal({
       }, 2000);
     } catch (err: any) {
       console.error(err);
-      setError(err?.response?.data?.error || "Failed to send invitation.");
+      if (err?.response?.data?.error === "LIMIT_REACHED") {
+        onClose();
+        triggerSubscriptionUpgrade("You've reached the maximum number of team members allowed on your current plan. Please upgrade to invite more members.");
+        return;
+      }
+      setError(err?.response?.data?.error || err.response?.data?.message || "Failed to send invitation.");
     } finally {
       setLoading(false);
     }

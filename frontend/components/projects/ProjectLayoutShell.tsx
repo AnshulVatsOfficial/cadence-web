@@ -14,6 +14,7 @@ import {
   LogOut,
   User as UserIcon,
   Mail,
+  CreditCard,
 } from "lucide-react";
 import { useAuth } from "@/lib/authContext";
 import { api } from "@/lib/api";
@@ -22,6 +23,7 @@ import CreateProjectModal from "./CreateProjectModal";
 import EditProjectModal from "./EditProjectModal";
 import CustomAlertDialog from "../shared/CustomAlertDialog";
 import InformationBanner from "../shared/InformationBanner";
+import SubscriptionUpgradeFlow from "../billing/SubscriptionUpgradeFlow";
 import { Skeleton } from "../ui/skeleton";
 import {
   Sidebar,
@@ -75,6 +77,9 @@ export default function ProjectLayoutShell({
     setShowEditModal,
     showDeleteModal,
     setShowDeleteModal,
+    showUpgradeModal,
+    setShowUpgradeModal,
+    upgradeAlertMessage,
   } = useProject();
 
   const [isDeletingProj, setIsDeletingProj] = useState(false);
@@ -250,6 +255,18 @@ export default function ProjectLayoutShell({
                 <Mail className="w-3.5 h-3.5 flex-shrink-0" />
                 <span className="truncate group-data-[collapsible=icon]:hidden">Invitations</span>
               </SidebarMenuButton>
+
+              <SidebarMenuButton
+                onClick={() => router.push("/projects/billing")}
+                className={`w-full flex items-center gap-x-2.5 px-2 py-1.5 rounded-[3px] text-left text-xs group-data-[collapsible=icon]:justify-center ${
+                  pathname === "/projects/billing"
+                    ? "bg-[#DEEBFF] text-[#0747A6] font-semibold"
+                    : "text-[#172B4D] hover:bg-[#EBECF0]"
+                }`}
+              >
+                <CreditCard className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="truncate group-data-[collapsible=icon]:hidden">Billing</span>
+              </SidebarMenuButton>
               
               <SidebarMenuButton
                 onClick={() => {
@@ -406,6 +423,12 @@ export default function ProjectLayoutShell({
               setIsDeletingProj(false);
             }
           }}
+        />
+
+        <SubscriptionUpgradeFlow
+          isOpen={showUpgradeModal}
+          onClose={() => setShowUpgradeModal(false)}
+          alertMessage={upgradeAlertMessage}
         />
       </div>
     </SidebarProvider>
