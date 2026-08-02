@@ -153,7 +153,7 @@ export default function SubscriptionUpgradeFlow({
           onClose={handleClose}
           title="Choose a Plan"
           description="Select a plan that fits your team's needs."
-          className="max-w-4xl"
+          className="max-w-4xl sm:max-w-4xl md:max-w-5xl w-[95vw]"
         >
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
             {tiers.map((tier) => (

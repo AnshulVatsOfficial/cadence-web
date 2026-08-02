@@ -97,12 +97,14 @@ export default function TaskCard({ task, isWritable = true }: TaskCardProps) {
 
   return (
     <>
-      <div className="bg-white border border-[#DFE1E6] rounded-[4px] p-3 shadow-sm hover:border-[#0052CC] transition-all cursor-grab active:cursor-grabbing group relative space-y-2 select-none">
+      <div
+        onClick={() => setSelectedTask(task)}
+        className="bg-white border border-[#DFE1E6] rounded-[4px] p-3 shadow-sm hover:border-[#0052CC] transition-all cursor-pointer group relative space-y-2 select-none"
+      >
         {/* Header: Title & Quick Actions (Edit & Delete) */}
         <div className="flex items-start justify-between">
           <h4
-            onClick={() => setSelectedTask(task)}
-            className="text-xs font-semibold text-[#172B4D] leading-snug cursor-pointer hover:text-[#0052CC] transition-colors pr-12"
+            className="text-xs font-semibold text-[#172B4D] leading-snug hover:text-[#0052CC] transition-colors pr-12"
           >
             {task.title}
           </h4>
@@ -143,8 +145,7 @@ export default function TaskCard({ task, isWritable = true }: TaskCardProps) {
         {/* Optional Description snippet */}
         {task.description && (
           <p
-            onClick={() => setSelectedTask(task)}
-            className="text-[11px] text-[#5E6C84] line-clamp-2 cursor-pointer"
+            className="text-[11px] text-[#5E6C84] line-clamp-2"
           >
             {typeof task.description === "string"
               ? task.description
