@@ -64,7 +64,9 @@ export default function Home() {
           <p className="text-xs font-bold text-[#172B4D] truncate">
             {currentUser?.name || "User"}
           </p>
-          <p className="text-[11px] text-[#5E6C84] truncate">{currentUser?.email}</p>
+          {currentUser?.email && !(!currentUser.email.includes("@") && currentUser.email.length > 20) && (
+            <p className="text-[11px] text-[#5E6C84] truncate">{currentUser.email}</p>
+          )}
         </div>
         <DropdownMenuItem
           onClick={logout}

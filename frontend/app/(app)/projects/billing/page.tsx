@@ -17,7 +17,7 @@ const tiers = [
     price: "$0",
     description: "Basic access for individuals.",
     features: ["1 Project", "Up to 2 Members", "Basic Support"],
-    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_FREE,
+    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_FREE || "price_free",
   },
   {
     name: "PRO",
@@ -63,9 +63,20 @@ export default function BillingPage() {
   const fetchBillingData = async () => {
     try {
       setLoading(true);
+      const searchParams = new URLSearchParams(window.location.search);
+      const sessionId = searchParams.get("session_id");
+      const checkoutSuccess = searchParams.get("checkout_success");
+
+      if (checkoutSuccess) {
+        toast.success("Payment successful! Updating your plan...");
+      }
+
+      const planUrl = sessionId ? `/stripe/plan?session_id=${sessionId}` : "/stripe/plan";
+      const historyUrl = sessionId ? `/stripe/history?session_id=${sessionId}` : "/stripe/history";
+
       const [planRes, historyRes] = await Promise.all([
-        api.get("/stripe/plan"),
-        api.get("/stripe/history"),
+        api.get(planUrl),
+        api.get(historyUrl),
       ]);
       setPlanData(planRes.data.plan);
       setInvoices(historyRes.data.invoices || []);
@@ -78,10 +89,13 @@ export default function BillingPage() {
   };
 
   const handleUpgradeClick = async (tier: any) => {
-    if (tier.id === "tier-free") return;
-    
     setConfirmingTier(tier);
     setAmountDue(null);
+    if (tier.id === "tier-free") {
+      setAmountDue(0);
+      return;
+    }
+
     if (tier.priceId) {
       setIsCalculating(true);
       try {
@@ -97,21 +111,29 @@ export default function BillingPage() {
   };
 
   const handleConfirmSubscribe = async () => {
-    if (!confirmingTier || !confirmingTier.priceId) return;
+    if (!confirmingTier) return;
 
     try {
       setActionLoading(confirmingTier.id);
-      const res = await api.post("/stripe/update-subscription", { priceId: confirmingTier.priceId });
+      const targetPriceId = confirmingTier.priceId || (confirmingTier.id === "tier-free" ? "tier-free" : undefined);
+      
+      if (!targetPriceId) {
+        toast.error("Invalid price configuration for tier");
+        return;
+      }
+
+      const res = await api.post("/stripe/update-subscription", { priceId: targetPriceId });
+      
       if (res.data.url) {
         window.location.href = res.data.url;
       } else if (res.data.success) {
-        toast.success("Subscription updated successfully!");
+        toast.success(res.data.message || "Subscription updated successfully!");
         setConfirmingTier(null);
-        fetchBillingData();
+        await fetchBillingData();
       }
     } catch (error: any) {
       console.error(error);
-      toast.error("Failed to update subscription.");
+      toast.error(error.response?.data?.error || "Failed to update subscription.");
     } finally {
       setActionLoading(null);
     }
@@ -143,7 +165,8 @@ export default function BillingPage() {
     );
   }
 
-  const currentTier = tiers.find(t => t.name === planData?.name) || tiers[0];
+  const currentPlanName = (planData?.name || "FREE").toUpperCase();
+  const currentTier = tiers.find(t => t.name.toUpperCase() === currentPlanName) || tiers[0];
 
   return (
     <ProjectProvider>
@@ -162,7 +185,7 @@ export default function BillingPage() {
               <h2 className="text-lg font-bold text-[#172B4D] mb-4">All Plans</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {tiers.map((tier) => {
-                  const isCurrent = planData?.name === tier.name;
+                  const isCurrent = currentPlanName === tier.name.toUpperCase();
                   return (
                     <div
                       key={tier.id}
@@ -193,17 +216,19 @@ export default function BillingPage() {
                       <Button
                         className="w-full mt-auto"
                         variant={isCurrent ? "outline" : "default"}
-                        disabled={isCurrent || actionLoading === tier.id || tier.name === "FREE"}
+                        disabled={isCurrent || actionLoading === tier.id}
                         onClick={() => handleUpgradeClick(tier)}
                       >
                         {actionLoading === tier.id ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
                         ) : isCurrent ? (
                           "Active"
+                        ) : currentPlanName === "FREE" ? (
+                          `Upgrade to ${tier.name}`
                         ) : tier.name === "FREE" ? (
-                          "Included"
+                          "Downgrade to Free"
                         ) : (
-                          "Upgrade"
+                          `Switch to ${tier.name}`
                         )}
                       </Button>
                     </div>
@@ -222,7 +247,7 @@ export default function BillingPage() {
               </div>
               <div className="p-6 flex flex-col md:flex-row gap-8 items-start">
                 <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-[#172B4D] mb-2">{planData?.name || "FREE"}</h3>
+                  <h3 className="text-2xl font-bold text-[#172B4D] mb-2">{currentTier.name}</h3>
                   <p className="text-sm text-[#5E6C84] mb-4">{currentTier.description}</p>
                   {planData?.currentPeriodEnd && (
                     <p className="text-xs font-medium text-[#172B4D] flex items-center gap-1.5">
@@ -237,13 +262,13 @@ export default function BillingPage() {
                     <div>
                       <div className="flex justify-between text-xs mb-1 text-[#172B4D]">
                         <span>Projects</span>
-                        <span className="font-medium">{planData?.limits.projects === Infinity ? "Unlimited" : planData?.limits.projects}</span>
+                        <span className="font-medium">{planData?.limits?.projects === Infinity ? "Unlimited" : planData?.limits?.projects || 1}</span>
                       </div>
                     </div>
                     <div>
                       <div className="flex justify-between text-xs mb-1 text-[#172B4D]">
                         <span>Members per Project</span>
-                        <span className="font-medium">{planData?.limits.members === Infinity ? "Unlimited" : planData?.limits.members}</span>
+                        <span className="font-medium">{planData?.limits?.members === Infinity ? "Unlimited" : planData?.limits?.members || 2}</span>
                       </div>
                     </div>
                   </div>
@@ -261,9 +286,9 @@ export default function BillingPage() {
               <div className="p-6 flex items-center justify-between">
                 <div>
                   <p className="text-sm text-[#172B4D] mb-1">Manage your payment methods and billing details securely via Stripe.</p>
-                  <p className="text-xs text-[#5E6C84]">Only available for paid plans.</p>
+                  <p className="text-xs text-[#5E6C84]">Only available for active paid plans.</p>
                 </div>
-                <Button variant="outline" size="sm" onClick={handleManageBilling} disabled={!!actionLoading || planData?.name === "FREE"}>
+                <Button variant="outline" size="sm" onClick={handleManageBilling} disabled={!!actionLoading || currentPlanName === "FREE"}>
                   {actionLoading === "manage" ? "Loading..." : "Manage Payment Method"}
                 </Button>
               </div>
@@ -335,8 +360,8 @@ export default function BillingPage() {
         <CustomDialog
           isOpen={true}
           onClose={() => setConfirmingTier(null)}
-          title="Confirm Subscription"
-          description="You are about to upgrade your workspace."
+          title={confirmingTier.name === "FREE" ? "Downgrade Subscription" : "Confirm Subscription Change"}
+          description={confirmingTier.name === "FREE" ? "You are about to switch to the Free plan." : "You are about to update your plan."}
         >
           <div className="bg-[#FAFBFC] border border-[#DFE1E6] rounded-md p-4 mb-6 mt-2">
             <div className="flex items-center gap-3 mb-3">
@@ -356,7 +381,9 @@ export default function BillingPage() {
               </span>
             </div>
             <p className="text-xs text-[#5E6C84] mt-2">
-              Note: This amount reflects prorated charges based on your current subscription status and billing cycle.
+              {confirmingTier.name === "FREE"
+                ? "Downgrading to Free will cancel your paid subscription."
+                : "This amount reflects prorated charges based on your current subscription status and billing cycle."}
             </p>
           </div>
 
@@ -371,6 +398,8 @@ export default function BillingPage() {
             >
               {actionLoading === confirmingTier.id ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
+              ) : confirmingTier.name === "FREE" ? (
+                "Confirm Downgrade"
               ) : (
                 "Proceed to Pay"
               )}

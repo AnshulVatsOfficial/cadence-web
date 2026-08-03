@@ -83,6 +83,20 @@ export default function ProjectLayoutShell({
   } = useProject();
 
   const [isDeletingProj, setIsDeletingProj] = useState(false);
+  const [pendingInviteCount, setPendingInviteCount] = useState(0);
+
+  React.useEffect(() => {
+    if (user) {
+      api
+        .get("/invitations")
+        .then((res) => {
+          const received = res.data.received || [];
+          const pending = received.filter((i: any) => i.status === "PENDING");
+          setPendingInviteCount(pending.length);
+        })
+        .catch(() => {});
+    }
+  }, [user]);
 
   const handleProjectChange = (proj: any) => {
     router.push(`/projects/${proj.id}`);
@@ -116,7 +130,9 @@ export default function ProjectLayoutShell({
           <p className="text-xs font-bold text-[#172B4D] truncate">
             {user?.name || "User"}
           </p>
-          <p className="text-[11px] text-[#5E6C84] truncate">{user?.email}</p>
+          {user?.email && !(!user.email.includes("@") && user.email.length > 20) && (
+            <p className="text-[11px] text-[#5E6C84] truncate">{user.email}</p>
+          )}
         </div>
         <DropdownMenuItem
           onClick={logout}
@@ -246,14 +262,21 @@ export default function ProjectLayoutShell({
 
               <SidebarMenuButton
                 onClick={() => router.push("/projects/invitations")}
-                className={`w-full flex items-center gap-x-2.5 px-2 py-1.5 rounded-[3px] text-left text-xs group-data-[collapsible=icon]:justify-center ${
+                className={`w-full flex items-center justify-between gap-x-2.5 px-2 py-1.5 rounded-[3px] text-left text-xs group-data-[collapsible=icon]:justify-center ${
                   pathname === "/projects/invitations"
                     ? "bg-[#DEEBFF] text-[#0747A6] font-semibold"
                     : "text-[#172B4D] hover:bg-[#EBECF0]"
                 }`}
               >
-                <Mail className="w-3.5 h-3.5 flex-shrink-0" />
-                <span className="truncate group-data-[collapsible=icon]:hidden">Invitations</span>
+                <div className="flex items-center gap-x-2.5 min-w-0">
+                  <Mail className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span className="truncate group-data-[collapsible=icon]:hidden">Invitations</span>
+                </div>
+                {pendingInviteCount > 0 && (
+                  <span className="bg-[#0052CC] text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full shrink-0 group-data-[collapsible=icon]:hidden">
+                    {pendingInviteCount}
+                  </span>
+                )}
               </SidebarMenuButton>
 
               <SidebarMenuButton
@@ -268,22 +291,19 @@ export default function ProjectLayoutShell({
                 <span className="truncate group-data-[collapsible=icon]:hidden">Billing</span>
               </SidebarMenuButton>
               
-              <SidebarMenuButton
-                onClick={() => {
-                  if (activeProject) router.push(`/projects/${activeProject.id}`);
-                }}
-                disabled={!activeProject}
-                className={`w-full flex items-center gap-x-2.5 px-2 py-1.5 rounded-[3px] text-left text-xs group-data-[collapsible=icon]:justify-center ${
-                  !activeProject ? "opacity-50 cursor-not-allowed" : ""
-                } ${
-                  activeProject && pathname === `/projects/${activeProject.id}`
-                    ? "bg-[#DEEBFF] text-[#0747A6] font-semibold"
-                    : "text-[#172B4D] hover:bg-[#EBECF0]"
-                }`}
-              >
-                <KanbanSquare className="w-3.5 h-3.5 flex-shrink-0" />
-                <span className="truncate group-data-[collapsible=icon]:hidden">Board</span>
-              </SidebarMenuButton>
+              {activeProject && (
+                <SidebarMenuButton
+                  onClick={() => router.push(`/projects/${activeProject.id}`)}
+                  className={`w-full flex items-center gap-x-2.5 px-2 py-1.5 rounded-[3px] text-left text-xs group-data-[collapsible=icon]:justify-center ${
+                    pathname === `/projects/${activeProject.id}`
+                      ? "bg-[#DEEBFF] text-[#0747A6] font-semibold"
+                      : "text-[#172B4D] hover:bg-[#EBECF0]"
+                  }`}
+                >
+                  <KanbanSquare className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span className="truncate group-data-[collapsible=icon]:hidden">Board</span>
+                </SidebarMenuButton>
+              )}
             </div>
           </SidebarContent>
 

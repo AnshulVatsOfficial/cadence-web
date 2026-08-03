@@ -7,7 +7,7 @@ const privateRoutePrefixes = ["/projects"];
 // Public auth pages where logged-in users are redirected to /projects
 const publicAuthPages = ["/login", "/signup"];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isLoggedIn = request.cookies.has("cadence_logged_in");
 

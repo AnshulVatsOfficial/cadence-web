@@ -45,7 +45,7 @@ export default function CustomDialog({
             </DialogDescription>
           )}
         </DialogHeader>
-        <div className="flex-1 overflow-y-auto pt-4 pr-1 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto pt-4 pr-3 custom-scrollbar">
           {children}
         </div>
       </DialogContent>

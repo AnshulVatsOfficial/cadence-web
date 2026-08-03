@@ -27,7 +27,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Response Interceptor: Catch 401 with token_expired and perform silent refresh
+// Response Interceptor: Catch 401 and perform silent refresh
 let isRefreshing = false;
 let failedQueue: Array<{
   resolve: (token: string) => void;
@@ -52,8 +52,9 @@ api.interceptors.response.use(
 
     if (
       error.response?.status === 401 &&
-      error.response?.data?.error === "token_expired" &&
-      !originalRequest._retry
+      !originalRequest._retry &&
+      !originalRequest.url?.includes("/auth/refresh") &&
+      !originalRequest.url?.includes("/auth/login")
     ) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
@@ -89,9 +90,6 @@ api.interceptors.response.use(
       } catch (refreshErr) {
         processQueue(refreshErr, null);
         setAccessToken(null);
-        if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
-          window.location.href = "/login";
-        }
         return Promise.reject(refreshErr);
       } finally {
         isRefreshing = false;

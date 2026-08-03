@@ -9,6 +9,8 @@ import {
   Edit2,
   Briefcase,
   LogOut,
+  PauseCircle,
+  PlayCircle,
 } from "lucide-react";
 import { useAuth } from "@/lib/authContext";
 import { api } from "@/lib/api";
@@ -100,7 +102,9 @@ export default function ProjectsDashboardPage() {
           <p className="text-xs font-bold text-[#172B4D] truncate">
             {user?.name || "User"}
           </p>
-          <p className="text-[11px] text-[#5E6C84] truncate">{user?.email}</p>
+          {user?.email && !(!user.email.includes("@") && user.email.length > 20) && (
+            <p className="text-[11px] text-[#5E6C84] truncate">{user.email}</p>
+          )}
         </div>
         <DropdownMenuItem
           onClick={logout}
@@ -185,13 +189,25 @@ export default function ProjectsDashboardPage() {
             ))}
           </div>
         ) : projects.length === 0 ? (
-          /* Empty State */
-          <div className="flex-grow flex items-center justify-center">
+          /* Empty State for No Projects */
+          <div className="flex-grow flex items-center justify-center py-12">
             <EmptyState
               title="No projects found"
               description="Get started by creating your first project workspace for your team."
               actionLabel="Create Project"
               onAction={() => setShowCreateModal(true)}
+            />
+          </div>
+        ) : filteredProjects.length === 0 ? (
+          /* Empty State for Search No Results */
+          <div className="flex-grow flex items-center justify-center py-12">
+            <EmptyState
+              title={`No projects matching "${searchQuery}"`}
+              description="Check your spelling or try searching with a different term."
+              icon={<Search className="w-5 h-5 text-[#5E6C84]" />}
+              iconBgClass="bg-[#F4F5F7]"
+              actionLabel="Clear search"
+              onAction={() => setSearchQuery("")}
             />
           </div>
         ) : (
@@ -230,19 +246,34 @@ export default function ProjectsDashboardPage() {
                             setSelectedProject(p);
                             setShowEditModal(true);
                           }}
+                          title="Edit Project"
                           className="p-1 text-[#5E6C84] hover:text-[#172B4D] hover:bg-[#F4F5F7] rounded-[2px]"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
-                        <button
-                          onClick={() => {
-                            setSelectedProject(p);
-                            setShowDeleteModal(true);
-                          }}
-                          className="p-1 text-[#5E6C84] hover:text-[#DE350B] hover:bg-red-50 rounded-[2px]"
-                        >
-                          <Trash className="w-3.5 h-3.5" />
-                        </button>
+                        {p.status === "INACTIVE" ? (
+                          <button
+                            onClick={() => {
+                              setSelectedProject(p);
+                              setShowDeleteModal(true);
+                            }}
+                            title="Reactivate Project"
+                            className="p-1 text-[#5E6C84] hover:text-emerald-600 hover:bg-emerald-50 rounded-[2px]"
+                          >
+                            <PlayCircle className="w-3.5 h-3.5" />
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setSelectedProject(p);
+                              setShowDeleteModal(true);
+                            }}
+                            title="Deactivate Project"
+                            className="p-1 text-[#5E6C84] hover:text-[#DE350B] hover:bg-red-50 rounded-[2px]"
+                          >
+                            <PauseCircle className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </div>
                     )}
                   </div>
@@ -256,9 +287,22 @@ export default function ProjectsDashboardPage() {
                   <span className="font-medium">
                     {p.totalTasks ?? 0} {p.totalTasks === 1 ? "Task" : "Tasks"}
                   </span>
-                  <span className="bg-[#F4F5F7] text-[#172B4D] px-2 py-0.5 rounded-[2px] font-semibold text-[10px]">
-                    {p.role || "MEMBER"}
-                  </span>
+                  <div className="flex items-center space-x-2">
+                    {p.status === "INACTIVE" ? (
+                      <span className="inline-flex items-center gap-1 bg-red-50 text-red-600 border border-red-200/80 px-2 py-0.5 rounded-[2px] font-bold text-[10px] uppercase">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                        Inactive
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2 py-0.5 rounded-[2px] font-bold text-[10px] uppercase">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        Active
+                      </span>
+                    )}
+                    <span className="bg-[#F4F5F7] text-[#172B4D] px-2 py-0.5 rounded-[2px] font-semibold text-[10px]">
+                      {p.role || "MEMBER"}
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}
@@ -301,21 +345,22 @@ export default function ProjectsDashboardPage() {
             setShowDeleteModal(false);
             setSelectedProject(null);
           }}
-          title="Deactivate Project"
-          confirmText="Deactivate"
-          variant="danger"
+          title={selectedProject.status === "INACTIVE" ? "Reactivate Project" : "Deactivate Project"}
+          confirmText={selectedProject.status === "INACTIVE" ? "Reactivate" : "Deactivate"}
+          variant={selectedProject.status === "INACTIVE" ? "default" : "danger"}
           isLoading={isDeleting}
           description={
             <span>
-              Are you sure you want to deactivate project{" "}
+              Are you sure you want to {selectedProject.status === "INACTIVE" ? "reactivate" : "deactivate"} project{" "}
               <strong>"{selectedProject.name}"</strong>?
             </span>
           }
           onConfirm={async () => {
             try {
               setIsDeleting(true);
+              const nextStatus = selectedProject.status === "INACTIVE" ? "ACTIVE" : "INACTIVE";
               await api.patch(`/projects/${selectedProject.id}`, {
-                status: "INACTIVE",
+                status: nextStatus,
               });
               setShowDeleteModal(false);
               setSelectedProject(null);

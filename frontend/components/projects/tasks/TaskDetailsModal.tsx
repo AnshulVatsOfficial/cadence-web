@@ -9,6 +9,7 @@ import { api } from "@/lib/api";
 import CustomDialog from "@/components/shared/CustomDialog";
 import CustomAlertDialog from "@/components/shared/CustomAlertDialog";
 import SubtaskList from "./SubtaskList";
+import CommentList from "./CommentList";
 import { DatePicker } from "@/components/shared/DatePicker";
 import { AssigneeSelect } from "@/components/shared/AssigneeSelect";
 import {
@@ -183,10 +184,11 @@ export default function TaskDetailsModal() {
         onClose={handleClose}
         title={selectedTask.parentTaskId ? "Subtask Details" : "Task Details"}
         description={parentTask ? `Subtask of: ${parentTask.title}` : undefined}
+        className="max-w-4xl sm:max-w-5xl md:max-w-6xl w-full max-h-[90vh]"
       >
         <form onSubmit={handleSubmit(handleSave)} className="space-y-4 no-validate" noValidate>
           {/* Top Bar Actions & Parent Breadcrumb */}
-          <div className="flex items-center justify-between pb-2 border-b border-[#DFE1E6]">
+          <div className="flex items-center justify-between pb-3 border-b border-[#DFE1E6]">
             {parentTask ? (
               <button
                 type="button"
@@ -216,171 +218,188 @@ export default function TaskDetailsModal() {
             )}
           </div>
 
-          {/* Title */}
-          <div className="space-y-1">
-            <Label className="text-xs font-semibold text-[#172B4D]">Title</Label>
-            <Input
-              {...register("title")}
-              disabled={!isWritable}
-              className="text-xs font-bold h-9 border-[#DFE1E6] text-[#172B4D] focus-visible:ring-1 focus-visible:ring-[#0052CC]"
-            />
-            {errors.title?.message && (
-              <p className="text-[10px] text-[#DE350B] font-medium">{String(errors.title.message)}</p>
-            )}
-          </div>
-
-          {/* Status & Priority Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {/* Stage / Status */}
-            <div className="space-y-1">
-              <Label className="text-xs font-semibold text-[#172B4D]">Status / Stage</Label>
-              <Controller
-                name="stageId"
-                control={control}
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange} disabled={!isWritable}>
-                    <SelectTrigger className="w-full h-8 text-xs border-[#DFE1E6]">
-                      <SelectValue placeholder="Select Stage" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {stages.map((stage: any) => (
-                        <SelectItem key={stage.id} value={stage.id} className="text-xs">
-                          {stage.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </div>
-
-            {/* Priority */}
-            <div className="space-y-1">
-              <Label className="text-xs font-semibold text-[#172B4D]">Priority</Label>
-              <Controller
-                name="priority"
-                control={control}
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange} disabled={!isWritable}>
-                    <SelectTrigger className="w-full h-8 text-xs border-[#DFE1E6]">
-                      <SelectValue placeholder="Select Priority" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="LOW" className="text-xs">Low</SelectItem>
-                      <SelectItem value="MEDIUM" className="text-xs">Medium</SelectItem>
-                      <SelectItem value="HIGH" className="text-xs">High</SelectItem>
-                      <SelectItem value="URGENT" className="text-xs">Urgent</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </div>
-          </div>
-
-          {/* Description */}
-          <div className="space-y-1">
-            <Label className="text-xs font-semibold text-[#172B4D]">Description</Label>
-            <Textarea
-              {...register("description")}
-              disabled={!isWritable}
-              rows={3}
-              placeholder="Add description..."
-              className="text-xs border-[#DFE1E6] resize-none focus-visible:ring-1 focus-visible:ring-[#0052CC]"
-            />
-          </div>
-
-          {/* Subtasks Section */}
-          <div className="pt-2 border-t border-[#DFE1E6]">
-            <SubtaskList parentTask={selectedTask} isWritable={isWritable} />
-          </div>
-
-          {/* Assignees Dropdown */}
-          {projectMembers.length > 0 && (
-            <div className="space-y-1 pt-2 border-t border-[#DFE1E6]">
-              <Label className="text-xs font-semibold text-[#172B4D] flex items-center space-x-1">
-                <User className="w-3.5 h-3.5 text-[#5E6C84]" />
-                <span>Assignees</span>
-              </Label>
-              <Controller
-                name="assigneeIds"
-                control={control}
-                render={({ field }) => (
-                  <AssigneeSelect
-                    members={projectMembers}
-                    selectedUserIds={field.value || []}
-                    onChange={field.onChange}
-                    disabled={!isWritable || isSaving}
-                  />
-                )}
-              />
-            </div>
-          )}
-
-          {/* Dates & Estimates */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-[#DFE1E6]">
-            {/* Shadcn DatePicker */}
-            <div className="space-y-1">
-              <Label className="text-xs font-semibold text-[#172B4D] flex items-center space-x-1">
-                <Calendar className="w-3.5 h-3.5 text-[#5E6C84]" />
-                <span>Due Date</span>
-              </Label>
-              <Controller
-                name="dueDate"
-                control={control}
-                render={({ field }) => (
-                  <DatePicker
-                    date={field.value}
-                    setDate={field.onChange}
-                    disabled={!isWritable}
-                    placeholder="Select due date"
-                  />
-                )}
-              />
-            </div>
-
-            {/* Time Estimate (Duration + Units) */}
-            <div className="space-y-1">
-              <Label className="text-xs font-semibold text-[#172B4D] flex items-center space-x-1 justify-between">
-                <div className="flex items-center space-x-1">
-                  <Clock className="w-3.5 h-3.5 text-[#5E6C84]" />
-                  <span>Time Estimate</span>
-                </div>
-                {selectedTask.estimatedMinutes !== undefined && selectedTask.estimatedMinutes !== null && (
-                  <span className="text-[10px] text-[#0052CC] font-normal">
-                    ({displayFormattedTime(selectedTask.estimatedMinutes)})
-                  </span>
-                )}
-              </Label>
-              <div className="flex items-center space-x-1.5 w-full">
+          {/* Main 2-Column Responsive Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Left Column (Task Title, Status, Priority, Assignees, Dates, Description & Subtasks) */}
+            <div className="lg:col-span-7 space-y-4">
+              {/* Title */}
+              <div className="space-y-1">
+                <Label className="text-xs font-semibold text-[#172B4D]">Title</Label>
                 <Input
-                  type="number"
-                  min="0"
-                  step="any"
-                  {...register("estimateValue")}
+                  {...register("title")}
                   disabled={!isWritable}
-                  className="text-xs h-8 border-[#DFE1E6] flex-1 min-w-[70px] focus-visible:ring-1 focus-visible:ring-[#0052CC]"
+                  className="text-xs font-bold h-9 border-[#DFE1E6] text-[#172B4D] focus-visible:ring-1 focus-visible:ring-[#0052CC]"
                 />
-                <Controller
-                  name="estimateUnit"
-                  control={control}
-                  render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange} disabled={!isWritable}>
-                      <SelectTrigger className="h-8 w-24 shrink-0 text-xs border-[#DFE1E6]">
-                        <SelectValue placeholder="Unit" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="h" className="text-xs">Hours</SelectItem>
-                        <SelectItem value="d" className="text-xs">Days</SelectItem>
-                        <SelectItem value="w" className="text-xs">Weeks</SelectItem>
-                        <SelectItem value="m" className="text-xs">Mins</SelectItem>
-                      </SelectContent>
-                    </Select>
+                {errors.title?.message && (
+                  <p className="text-[10px] text-[#DE350B] font-medium">{String(errors.title.message)}</p>
+                )}
+              </div>
+
+              {/* Status & Priority Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-[#DFE1E6]">
+                {/* Stage / Status */}
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold text-[#172B4D]">Status / Stage</Label>
+                  <Controller
+                    name="stageId"
+                    control={control}
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange} disabled={!isWritable}>
+                        <SelectTrigger className="w-full h-8 text-xs border-[#DFE1E6]">
+                          <SelectValue placeholder="Select Stage" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {stages.map((stage: any) => (
+                            <SelectItem key={stage.id} value={stage.id} className="text-xs">
+                              {stage.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+
+                {/* Priority */}
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold text-[#172B4D]">Priority</Label>
+                  <Controller
+                    name="priority"
+                    control={control}
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange} disabled={!isWritable}>
+                        <SelectTrigger className="w-full h-8 text-xs border-[#DFE1E6]">
+                          <SelectValue placeholder="Select Priority" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="LOW" className="text-xs">Low</SelectItem>
+                          <SelectItem value="MEDIUM" className="text-xs">Medium</SelectItem>
+                          <SelectItem value="HIGH" className="text-xs">High</SelectItem>
+                          <SelectItem value="URGENT" className="text-xs">Urgent</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+              </div>
+
+              {/* Assignees Dropdown */}
+              {projectMembers.length > 0 && (
+                <div className="space-y-1 pt-2 border-t border-[#DFE1E6]">
+                  <Label className="text-xs font-semibold text-[#172B4D] flex items-center space-x-1">
+                    <User className="w-3.5 h-3.5 text-[#5E6C84]" />
+                    <span>Assignees</span>
+                  </Label>
+                  <Controller
+                    name="assigneeIds"
+                    control={control}
+                    render={({ field }) => (
+                      <AssigneeSelect
+                        members={projectMembers}
+                        selectedUserIds={field.value || []}
+                        onChange={field.onChange}
+                        disabled={!isWritable || isSaving}
+                      />
+                    )}
+                  />
+                </div>
+              )}
+
+              {/* Dates & Estimates */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-[#DFE1E6]">
+                {/* DatePicker */}
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold text-[#172B4D] flex items-center space-x-1">
+                    <Calendar className="w-3.5 h-3.5 text-[#5E6C84]" />
+                    <span>Due Date</span>
+                  </Label>
+                  <Controller
+                    name="dueDate"
+                    control={control}
+                    render={({ field }) => (
+                      <DatePicker
+                        date={field.value}
+                        setDate={field.onChange}
+                        disabled={!isWritable}
+                        placeholder="Select due date"
+                      />
+                    )}
+                  />
+                </div>
+
+                {/* Time Estimate */}
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold text-[#172B4D] flex items-center space-x-1 justify-between">
+                    <div className="flex items-center space-x-1">
+                      <Clock className="w-3.5 h-3.5 text-[#5E6C84]" />
+                      <span>Time Estimate</span>
+                    </div>
+                    {selectedTask.estimatedMinutes !== undefined && selectedTask.estimatedMinutes !== null && (
+                      <span className="text-[10px] text-[#0052CC] font-normal">
+                        ({displayFormattedTime(selectedTask.estimatedMinutes)})
+                      </span>
+                    )}
+                  </Label>
+                  <div className="flex items-center space-x-1.5 w-full">
+                    <Input
+                      type="number"
+                      min="0"
+                      step="any"
+                      {...register("estimateValue")}
+                      disabled={!isWritable}
+                      className="text-xs h-8 border-[#DFE1E6] flex-1 min-w-[70px] focus-visible:ring-1 focus-visible:ring-[#0052CC]"
+                    />
+                    <Controller
+                      name="estimateUnit"
+                      control={control}
+                      render={({ field }) => (
+                        <Select value={field.value} onValueChange={field.onChange} disabled={!isWritable}>
+                          <SelectTrigger className="h-8 w-24 shrink-0 text-xs border-[#DFE1E6]">
+                            <SelectValue placeholder="Unit" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="h" className="text-xs">Hours</SelectItem>
+                            <SelectItem value="d" className="text-xs">Days</SelectItem>
+                            <SelectItem value="w" className="text-xs">Weeks</SelectItem>
+                            <SelectItem value="m" className="text-xs">Mins</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </div>
+                  {timeError && (
+                    <p className="text-[10px] text-[#DE350B] font-medium">{timeError}</p>
                   )}
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="space-y-1 pt-2 border-t border-[#DFE1E6]">
+                <Label className="text-xs font-semibold text-[#172B4D]">Description</Label>
+                <Textarea
+                  {...register("description")}
+                  disabled={!isWritable}
+                  rows={3}
+                  placeholder="Add description..."
+                  className="text-xs border-[#DFE1E6] resize-none focus-visible:ring-1 focus-visible:ring-[#0052CC]"
                 />
               </div>
-              {timeError && (
-                <p className="text-[10px] text-[#DE350B] font-medium">{timeError}</p>
-              )}
+
+              {/* Subtasks Section */}
+              <div className="pt-3 border-t border-[#DFE1E6]">
+                <SubtaskList parentTask={selectedTask} isWritable={isWritable} />
+              </div>
+            </div>
+
+            {/* Right Column (Activity & Comments ONLY) */}
+            <div className="lg:col-span-5 space-y-4 lg:border-l lg:pl-6 border-[#DFE1E6]">
+              <CommentList
+                projectId={projectDetails?.id}
+                taskId={selectedTask.id}
+                isWritable={isWritable}
+                taskAssignees={selectedTask.assignees}
+                subtasks={selectedTask.subtasks}
+              />
             </div>
           </div>
 
