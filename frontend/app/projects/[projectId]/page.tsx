@@ -18,6 +18,7 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 import CreateTaskModal from "../../../components/projects/tasks/CreateTaskModal";
 import TaskDetailsModal from "../../../components/projects/tasks/TaskDetailsModal";
+import { AIGeneratorModal } from "../../../components/projects/AIGeneratorModal";
 
 const addColumnSchema = z.object({
   name: z
@@ -45,13 +46,14 @@ function getStatusBadgeStyles(status: string) {
 }
 
 function ProjectBoardContent() {
-  const { projectDetails, loadingProjects, fetchProjectDetails, openCreateTaskModal } = useProject();
+  const { projectDetails, loadingProjects, profileError, fetchProjectDetails, openCreateTaskModal } = useProject();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [localStages, setLocalStages] = useState<any[]>([]);
   const [localTasks, setLocalTasks] = useState<any[]>([]);
   const [showAddColumn, setShowAddColumn] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showAIModal, setShowAIModal] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   const userRole = projectDetails?.role;
@@ -165,6 +167,23 @@ function ProjectBoardContent() {
     }
   };
 
+  if (profileError) {
+    return (
+      <ProjectLayoutShell
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+      >
+        <div className="p-6 h-full flex flex-col items-center justify-center space-y-4">
+          <div className="text-red-500 font-semibold text-lg">Error loading project</div>
+          <p className="text-gray-600">{profileError}</p>
+          <Button onClick={() => window.location.reload()} variant="outline">
+            Try Again
+          </Button>
+        </div>
+      </ProjectLayoutShell>
+    );
+  }
+
   if (loadingProjects || !projectDetails) {
     return (
       <ProjectLayoutShell
@@ -240,13 +259,21 @@ function ProjectBoardContent() {
             )}
 
             {isWritable && (
-              <Button
-                onClick={() => openCreateTaskModal()}
-                className="h-8 text-xs bg-[#0052CC] hover:bg-[#0747A6] text-white px-3 rounded-[3px] font-semibold flex items-center space-x-1.5"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Create Task</span>
-              </Button>
+              <>
+                <Button
+                  onClick={() => setShowAIModal(true)}
+                  className="h-8 text-xs bg-purple-600 hover:bg-purple-700 text-white px-3 rounded-[3px] font-semibold flex items-center space-x-1.5"
+                >
+                  <span>✨ Generate Tasks</span>
+                </Button>
+                <Button
+                  onClick={() => openCreateTaskModal()}
+                  className="h-8 text-xs bg-[#0052CC] hover:bg-[#0747A6] text-white px-3 rounded-[3px] font-semibold flex items-center space-x-1.5"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Create Task</span>
+                </Button>
+              </>
             )}
           </div>
         </div>
@@ -371,6 +398,7 @@ function ProjectBoardContent() {
         {/* Task Modals */}
         <CreateTaskModal />
         <TaskDetailsModal />
+        <AIGeneratorModal open={showAIModal} onOpenChange={setShowAIModal} />
 
         <InviteMembersModal
           isOpen={showInviteModal}

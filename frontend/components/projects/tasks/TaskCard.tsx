@@ -153,6 +153,17 @@ export default function TaskCard({ task, isWritable = true }: TaskCardProps) {
           </p>
         )}
 
+        {/* Tags */}
+        {task.tags && task.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-1.5">
+            {task.tags.map((tag: string, index: number) => (
+              <Badge key={index} variant="secondary" className="text-[9px] px-1 py-0 h-4 bg-[#EAE6FF] text-[#403294] font-semibold">
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        )}
+
         {/* Subtask Summary & Toggle */}
         {totalSubtasksCount > 0 && (
           <div className="space-y-1.5 pt-1 border-t border-[#F4F5F7]">
