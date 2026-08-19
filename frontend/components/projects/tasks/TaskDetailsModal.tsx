@@ -30,7 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Trash2, Calendar, Clock, User, ArrowUpRight } from "lucide-react";
+import { Trash2, Calendar, Clock, User, ArrowUpRight, Share2 } from "lucide-react";
 
 const updateTaskSchema = z.object({
   title: z
@@ -189,33 +189,53 @@ export default function TaskDetailsModal() {
         <form onSubmit={handleSubmit(handleSave)} className="space-y-4 no-validate" noValidate>
           {/* Top Bar Actions & Parent Breadcrumb */}
           <div className="flex items-center justify-between pb-3 border-b border-[#DFE1E6]">
-            {parentTask ? (
-              <button
-                type="button"
-                onClick={() => setSelectedTask(parentTask)}
-                className="text-xs font-semibold text-[#0052CC] hover:underline flex items-center space-x-1"
-              >
-                <ArrowUpRight className="w-3.5 h-3.5" />
-                <span>Parent: {parentTask.title}</span>
-              </button>
-            ) : (
+            <div className="flex items-center space-x-3">
               <span className="text-[11px] font-bold text-[#5E6C84] uppercase tracking-wider">
-                Main Issue
+                {selectedTask.issueKey || (parentTask ? "Subtask" : "Main Issue")}
               </span>
-            )}
+              {parentTask && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedTask(parentTask)}
+                  className="text-xs font-semibold text-[#0052CC] hover:underline flex items-center space-x-1"
+                >
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                  <span>Parent: {parentTask.title}</span>
+                </button>
+              )}
+            </div>
 
-            {isWritable && (
+            <div className="flex items-center space-x-2">
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => setShowDeleteConfirm(true)}
-                className="h-7 px-2 text-xs text-[#DE350B] hover:bg-[#FFEBEB] rounded-[3px] space-x-1"
+                onClick={() => {
+                  const url = new URL(window.location.href);
+                  url.searchParams.set("taskId", selectedTask.id);
+                  navigator.clipboard.writeText(url.toString());
+                  alert("Link copied to clipboard!");
+                }}
+                className="h-7 px-2 text-xs text-[#5E6C84] hover:bg-[#EBECF0] rounded-[3px] space-x-1"
+                title="Share Ticket"
               >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span>Delete</span>
+                <Share2 className="w-3.5 h-3.5" />
+                <span>Share</span>
               </Button>
-            )}
+
+              {isWritable && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="h-7 px-2 text-xs text-[#DE350B] hover:bg-[#FFEBEB] rounded-[3px] space-x-1"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete</span>
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Main 2-Column Responsive Layout */}

@@ -169,6 +169,25 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
     }
   }, [projectId, backendDbId, accessToken]);
 
+  const hasOpenedFromUrl = React.useRef(false);
+
+  // Handle URL taskId deep-linking
+  useEffect(() => {
+    if (projectDetails?.tasks && !hasOpenedFromUrl.current) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const taskIdParam = urlParams.get("taskId");
+      if (taskIdParam) {
+        const taskToOpen = projectDetails.tasks.find((t: any) => t.id === taskIdParam);
+        if (taskToOpen) {
+          setSelectedTask(taskToOpen);
+          hasOpenedFromUrl.current = true;
+        }
+      } else {
+        hasOpenedFromUrl.current = true; // No taskId in URL, so don't try again
+      }
+    }
+  }, [projectDetails?.tasks]);
+
   return (
     <ProjectContext.Provider
       value={{

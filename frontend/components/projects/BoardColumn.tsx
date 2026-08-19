@@ -57,8 +57,8 @@ export default function BoardColumn({
     defaultValues: { name: stage.name },
   });
 
-  // Filter tasks to show top-level parent tasks in the column (subtasks are rendered nested within TaskCard)
-  const parentTasksInColumn = tasks.filter((t: any) => !t.parentTaskId);
+  // Filter tasks to show all tasks in the column, including subtasks
+  const tasksInColumn = tasks;
 
   // Handle column rename
   const onRename = async (data: { name: string }) => {
@@ -150,7 +150,7 @@ export default function BoardColumn({
                 {stage.name}
               </span>
               <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#E3E6EA] text-[#5E6C84]">
-                {parentTasksInColumn.length}
+                {tasksInColumn.length}
               </span>
               {isAdminOrOwner && isWritable && (
                 <Button
@@ -189,7 +189,7 @@ export default function BoardColumn({
               snapshot.isDraggingOver ? "bg-[#DEEBFF]/35" : ""
             }`}
           >
-            {parentTasksInColumn.map((task, idx) => (
+            {tasksInColumn.map((task, idx) => (
               <Draggable key={task.id} draggableId={task.id} index={idx} isDragDisabled={!isWritable}>
                 {(draggableProvided) => (
                   <div
