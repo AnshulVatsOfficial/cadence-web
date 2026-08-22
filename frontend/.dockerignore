@@ -1,7 +1,6 @@
 node_modules
 .next
 .env
-npm-debug.log
-Dockerfile
-.dockerignore
+.env.*
+npm-debug.log*
 .git
