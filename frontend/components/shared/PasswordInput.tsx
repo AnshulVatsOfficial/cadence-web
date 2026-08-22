@@ -3,9 +3,11 @@
 import React, { useState, forwardRef } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export interface PasswordInputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {}
+  extends React.ComponentProps<typeof Input> {}
 
 const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
   ({ className, ...props }, ref) => {
@@ -13,20 +15,22 @@ const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
 
     return (
       <div className="relative w-full">
-        <input
+        <Input
           type={showPassword ? "text" : "password"}
           className={cn(
-            "w-full px-3 py-2 pr-10 border border-[#DFE1E6] rounded-md bg-white text-[#172B4D] text-sm focus:outline-none focus:border-[#0052CC] transition-colors",
+            "pr-10 h-10 border-[#DFE1E6] rounded-[3px] bg-white text-[#172B4D] text-sm focus-visible:ring-1 focus-visible:ring-[#0052CC]",
             className
           )}
           ref={ref}
           {...props}
         />
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon-xs"
           tabIndex={-1}
           onClick={() => setShowPassword((prev) => !prev)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5E6C84] hover:text-[#172B4D] p-1 rounded transition-colors focus:outline-none"
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-[#5E6C84] hover:text-[#172B4D] hover:bg-transparent h-7 w-7 p-1 rounded focus:outline-none"
           aria-label={showPassword ? "Hide password" : "Show password"}
         >
           {showPassword ? (
@@ -34,7 +38,7 @@ const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
           ) : (
             <Eye className="w-4 h-4" />
           )}
-        </button>
+        </Button>
       </div>
     );
   }

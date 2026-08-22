@@ -157,13 +157,15 @@ export default function TaskCard({ task, isWritable = true }: TaskCardProps) {
         {totalSubtasksCount > 0 && (
           <div className="space-y-1.5 pt-1 border-t border-[#F4F5F7]">
             <div className="flex items-center justify-between">
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="xs"
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowSubtasks(!showSubtasks);
                 }}
-                className="flex items-center space-x-1 text-[10px] font-bold text-[#5E6C84] hover:text-[#172B4D] transition-colors"
+                className="flex items-center space-x-1 text-[10px] font-bold text-[#5E6C84] hover:text-[#172B4D] hover:bg-transparent h-auto p-0 transition-colors"
               >
                 {showSubtasks ? (
                   <ChevronDown className="w-3 h-3 text-[#0052CC]" />
@@ -173,7 +175,7 @@ export default function TaskCard({ task, isWritable = true }: TaskCardProps) {
                 <span>
                   Subtasks ({completedSubtasksCount}/{totalSubtasksCount})
                 </span>
-              </button>
+              </Button>
 
               <Badge
                 variant="outline"

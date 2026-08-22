@@ -9,6 +9,7 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 export type BannerVariant = "success" | "error" | "warning" | "info";
 
@@ -62,13 +63,16 @@ export default function InformationBanner({
         </div>
       </div>
       {onClose && (
-        <button
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-xs"
           onClick={onClose}
-          className="ml-4 hover:opacity-75 transition-opacity"
+          className="ml-4 h-5 w-5 p-0 text-current hover:bg-transparent hover:opacity-75 transition-opacity"
           aria-label="Dismiss banner"
         >
           <X className="w-4 h-4" />
-        </button>
+        </Button>
       )}
     </div>
   );

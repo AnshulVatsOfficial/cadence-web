@@ -24,6 +24,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
@@ -53,11 +54,15 @@ export default function Home() {
   const UserDropdown = () => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center space-x-2 p-1 rounded-full hover:bg-ds-bg-neutral transition-colors outline-none focus:ring-2 focus:ring-brand">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="flex items-center space-x-2 p-1 h-auto w-auto rounded-full hover:bg-ds-bg-neutral transition-colors outline-none focus-visible:ring-2 focus-visible:ring-brand"
+        >
           <div className="w-8 h-8 rounded-full bg-brand text-white font-bold text-xs flex items-center justify-center shadow-sm">
             {getInitials(currentUser?.name, currentUser?.email)}
           </div>
-        </button>
+        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56 bg-white border border-[#DFE1E6] shadow-md rounded-[3px]" align="end">
         <div className="px-3 py-2 border-b border-[#DFE1E6]">
@@ -311,33 +316,39 @@ export default function Home() {
 
           {/* Interactive tab headers */}
           <div className="flex bg-[#F4F5F7] p-1 rounded-[4px] border border-[#DFE1E6] mb-8 space-x-1">
-            <button
+            <Button
+              type="button"
+              variant={activeTab === "dev" ? "outline" : "ghost"}
               onClick={() => setActiveTab("dev")}
-              className={`px-4 py-2 text-xs font-bold rounded-[3px] transition ${
-                activeTab === "dev" ? "bg-white text-[#0052CC] shadow-sm" : "text-[#5E6C84] hover:text-[#172B4D]"
+              className={`px-4 py-2 h-auto text-xs font-bold rounded-[3px] transition ${
+                activeTab === "dev" ? "bg-white text-[#0052CC] shadow-xs border-[#DFE1E6]" : "text-[#5E6C84] hover:text-[#172B4D] border-transparent"
               }`}
             >
-              <GitBranch className="w-3.5 h-3.5 inline mr-1.5" />
-              Software Development
-            </button>
-            <button
+              <GitBranch className="w-3.5 h-3.5 mr-1.5" />
+              <span>Software Development</span>
+            </Button>
+            <Button
+              type="button"
+              variant={activeTab === "product" ? "outline" : "ghost"}
               onClick={() => setActiveTab("product")}
-              className={`px-4 py-2 text-xs font-bold rounded-[3px] transition ${
-                activeTab === "product" ? "bg-white text-[#0052CC] shadow-sm" : "text-[#5E6C84] hover:text-[#172B4D]"
+              className={`px-4 py-2 h-auto text-xs font-bold rounded-[3px] transition ${
+                activeTab === "product" ? "bg-white text-[#0052CC] shadow-xs border-[#DFE1E6]" : "text-[#5E6C84] hover:text-[#172B4D] border-transparent"
               }`}
             >
-              <Compass className="w-3.5 h-3.5 inline mr-1.5" />
-              Product Management
-            </button>
-            <button
+              <Compass className="w-3.5 h-3.5 mr-1.5" />
+              <span>Product Management</span>
+            </Button>
+            <Button
+              type="button"
+              variant={activeTab === "design" ? "outline" : "ghost"}
               onClick={() => setActiveTab("design")}
-              className={`px-4 py-2 text-xs font-bold rounded-[3px] transition ${
-                activeTab === "design" ? "bg-white text-[#0052CC] shadow-sm" : "text-[#5E6C84] hover:text-[#172B4D]"
+              className={`px-4 py-2 h-auto text-xs font-bold rounded-[3px] transition ${
+                activeTab === "design" ? "bg-white text-[#0052CC] shadow-xs border-[#DFE1E6]" : "text-[#5E6C84] hover:text-[#172B4D] border-transparent"
               }`}
             >
-              <Users className="w-3.5 h-3.5 inline mr-1.5" />
-              Design & Marketing
-            </button>
+              <Users className="w-3.5 h-3.5 mr-1.5" />
+              <span>Design & Marketing</span>
+            </Button>
           </div>
 
           {/* Tab Contents */}

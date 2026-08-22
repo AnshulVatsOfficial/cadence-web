@@ -11,6 +11,8 @@ import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import PasswordInput from "@/components/shared/PasswordInput";
 import { Loader2, Check, X, Mail, ArrowLeft, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const passwordSchema = z
   .string()
@@ -255,14 +257,14 @@ function SignupPageContent() {
             {/* Signup Form */}
             <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold uppercase text-ds-text-subtle mb-1">
+                <Label className="block text-xs font-semibold uppercase text-ds-text-subtle mb-1">
                   Full Name <span className="text-red-500">*</span>
-                </label>
-                <input
+                </Label>
+                <Input
                   type="text"
                   {...register("name")}
                   placeholder="Jane Doe"
-                  className="w-full px-3 py-2 border border-ds-border rounded-md bg-ds-bg text-ds-text text-sm focus:outline-none focus:border-brand transition-colors"
+                  className="w-full h-10 px-3 py-2 border-ds-border rounded-md bg-ds-bg text-ds-text text-sm focus-visible:ring-1 focus-visible:ring-brand transition-colors"
                 />
                 {errors.name && (
                   <p className="mt-1 text-xs text-red-600 font-medium">
@@ -272,14 +274,14 @@ function SignupPageContent() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-ds-text-subtle mb-1">
+                <Label className="block text-xs font-semibold uppercase text-ds-text-subtle mb-1">
                   Email Address <span className="text-red-500">*</span>
-                </label>
-                <input
+                </Label>
+                <Input
                   type="email"
                   {...register("email")}
                   placeholder="name@company.com"
-                  className="w-full px-3 py-2 border border-ds-border rounded-md bg-ds-bg text-ds-text text-sm focus:outline-none focus:border-brand transition-colors"
+                  className="w-full h-10 px-3 py-2 border-ds-border rounded-md bg-ds-bg text-ds-text text-sm focus-visible:ring-1 focus-visible:ring-brand transition-colors"
                 />
                 {errors.email && (
                   <p className="mt-1 text-xs text-red-600 font-medium">
@@ -289,9 +291,9 @@ function SignupPageContent() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-ds-text-subtle mb-1">
+                <Label className="block text-xs font-semibold uppercase text-ds-text-subtle mb-1">
                   Password <span className="text-red-500">*</span>
-                </label>
+                </Label>
                 <PasswordInput
                   {...register("password")}
                   placeholder="Enter password..."

@@ -7,6 +7,14 @@ import { api } from "@/lib/api";
 import { Badge } from "../../../components/ui/badge";
 import { Skeleton } from "../../../components/ui/skeleton";
 import { Button } from "../../../components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../../components/ui/table";
 import { Check, X, Trash2, Mail, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -130,33 +138,33 @@ function InvitationsContent() {
                 </div>
               ) : (
                 <div className="bg-white border border-[#DFE1E6] rounded-[4px] shadow-2xs overflow-hidden">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-[#F4F5F7] text-[#5E6C84] text-[11px] font-semibold tracking-wider uppercase border-b border-[#DFE1E6]">
-                      <tr>
-                        <th className="px-4 py-2.5 font-bold">Project</th>
-                        <th className="px-4 py-2.5 font-bold">Invited By</th>
-                        <th className="px-4 py-2.5 font-bold">Role</th>
-                        <th className="px-4 py-2.5 font-bold">Date Sent</th>
-                        <th className="px-4 py-2.5 font-bold">Status</th>
-                        <th className="px-4 py-2.5 font-bold text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#DFE1E6]">
+                  <Table className="w-full text-left text-xs">
+                    <TableHeader className="bg-[#F4F5F7] text-[#5E6C84] text-[11px] font-semibold tracking-wider uppercase border-b border-[#DFE1E6]">
+                      <TableRow className="border-[#DFE1E6] hover:bg-transparent">
+                        <TableHead className="px-4 py-2.5 font-bold text-[#5E6C84] h-auto">Project</TableHead>
+                        <TableHead className="px-4 py-2.5 font-bold text-[#5E6C84] h-auto">Invited By</TableHead>
+                        <TableHead className="px-4 py-2.5 font-bold text-[#5E6C84] h-auto">Role</TableHead>
+                        <TableHead className="px-4 py-2.5 font-bold text-[#5E6C84] h-auto">Date Sent</TableHead>
+                        <TableHead className="px-4 py-2.5 font-bold text-[#5E6C84] h-auto">Status</TableHead>
+                        <TableHead className="px-4 py-2.5 font-bold text-[#5E6C84] text-right h-auto">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody className="divide-y divide-[#DFE1E6]">
                       {received.map((inv) => (
-                        <tr key={inv.id} className="hover:bg-[#FAFBFC] transition-colors">
-                          <td className="px-4 py-3 font-bold text-[#172B4D]">
+                        <TableRow key={inv.id} className="hover:bg-[#FAFBFC] transition-colors border-[#DFE1E6]">
+                          <TableCell className="px-4 py-3 font-bold text-[#172B4D]">
                             {inv.project?.name || "Unknown Project"}
-                          </td>
-                          <td className="px-4 py-3 text-[#172B4D]">
+                          </TableCell>
+                          <TableCell className="px-4 py-3 text-[#172B4D]">
                             {inv.invitedBy?.name || "A team member"}
-                          </td>
-                          <td className="px-4 py-3 font-semibold text-[#5E6C84]">{inv.role}</td>
-                          <td className="px-4 py-3 text-[#5E6C84] text-[11px]">
+                          </TableCell>
+                          <TableCell className="px-4 py-3 font-semibold text-[#5E6C84]">{inv.role}</TableCell>
+                          <TableCell className="px-4 py-3 text-[#5E6C84] text-[11px]">
                             {inv.createdAt
                               ? formatDistanceToNow(new Date(inv.createdAt), { addSuffix: true })
                               : "-"}
-                          </td>
-                          <td className="px-4 py-3">
+                          </TableCell>
+                          <TableCell className="px-4 py-3">
                             <Badge
                               variant="outline"
                               className={`text-[10px] uppercase font-bold rounded-[3px] px-2 py-0.5 ${getStatusBadgeStyles(
@@ -165,8 +173,8 @@ function InvitationsContent() {
                             >
                               {inv.status}
                             </Badge>
-                          </td>
-                          <td className="px-4 py-3 text-right">
+                          </TableCell>
+                          <TableCell className="px-4 py-3 text-right">
                             {inv.status === "PENDING" && (
                               <div className="flex justify-end gap-1.5">
                                 <Button
@@ -198,11 +206,11 @@ function InvitationsContent() {
                                 </Button>
                               </div>
                             )}
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 </div>
               )}
             </div>
@@ -216,31 +224,31 @@ function InvitationsContent() {
                 </div>
               ) : (
                 <div className="bg-white border border-[#DFE1E6] rounded-[4px] shadow-2xs overflow-hidden">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-[#F4F5F7] text-[#5E6C84] text-[11px] font-semibold tracking-wider uppercase border-b border-[#DFE1E6]">
-                      <tr>
-                        <th className="px-4 py-2.5 font-bold">Email</th>
-                        <th className="px-4 py-2.5 font-bold">Project</th>
-                        <th className="px-4 py-2.5 font-bold">Role</th>
-                        <th className="px-4 py-2.5 font-bold">Date Sent</th>
-                        <th className="px-4 py-2.5 font-bold">Status</th>
-                        <th className="px-4 py-2.5 font-bold text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#DFE1E6]">
+                  <Table className="w-full text-left text-xs">
+                    <TableHeader className="bg-[#F4F5F7] text-[#5E6C84] text-[11px] font-semibold tracking-wider uppercase border-b border-[#DFE1E6]">
+                      <TableRow className="border-[#DFE1E6] hover:bg-transparent">
+                        <TableHead className="px-4 py-2.5 font-bold text-[#5E6C84] h-auto">Email</TableHead>
+                        <TableHead className="px-4 py-2.5 font-bold text-[#5E6C84] h-auto">Project</TableHead>
+                        <TableHead className="px-4 py-2.5 font-bold text-[#5E6C84] h-auto">Role</TableHead>
+                        <TableHead className="px-4 py-2.5 font-bold text-[#5E6C84] h-auto">Date Sent</TableHead>
+                        <TableHead className="px-4 py-2.5 font-bold text-[#5E6C84] h-auto">Status</TableHead>
+                        <TableHead className="px-4 py-2.5 font-bold text-[#5E6C84] text-right h-auto">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody className="divide-y divide-[#DFE1E6]">
                       {sent.map((inv) => (
-                        <tr key={inv.id} className="hover:bg-[#FAFBFC] transition-colors">
-                          <td className="px-4 py-3 font-bold text-[#172B4D]">{inv.email}</td>
-                          <td className="px-4 py-3 text-[#172B4D]">
+                        <TableRow key={inv.id} className="hover:bg-[#FAFBFC] transition-colors border-[#DFE1E6]">
+                          <TableCell className="px-4 py-3 font-bold text-[#172B4D]">{inv.email}</TableCell>
+                          <TableCell className="px-4 py-3 text-[#172B4D]">
                             {inv.project?.name || "Unknown Project"}
-                          </td>
-                          <td className="px-4 py-3 font-semibold text-[#5E6C84]">{inv.role}</td>
-                          <td className="px-4 py-3 text-[#5E6C84] text-[11px]">
+                          </TableCell>
+                          <TableCell className="px-4 py-3 font-semibold text-[#5E6C84]">{inv.role}</TableCell>
+                          <TableCell className="px-4 py-3 text-[#5E6C84] text-[11px]">
                             {inv.createdAt
                               ? formatDistanceToNow(new Date(inv.createdAt), { addSuffix: true })
                               : "-"}
-                          </td>
-                          <td className="px-4 py-3">
+                          </TableCell>
+                          <TableCell className="px-4 py-3">
                             <Badge
                               variant="outline"
                               className={`text-[10px] uppercase font-bold rounded-[3px] px-2 py-0.5 ${getStatusBadgeStyles(
@@ -249,8 +257,8 @@ function InvitationsContent() {
                             >
                               {inv.status}
                             </Badge>
-                          </td>
-                          <td className="px-4 py-3 text-right">
+                          </TableCell>
+                          <TableCell className="px-4 py-3 text-right">
                             {inv.status === "PENDING" && (
                               <Button
                                 type="button"
@@ -271,11 +279,11 @@ function InvitationsContent() {
                                 )}
                               </Button>
                             )}
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 </div>
               )}
             </div>

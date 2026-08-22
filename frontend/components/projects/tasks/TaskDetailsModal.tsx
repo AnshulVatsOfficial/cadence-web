@@ -190,14 +190,16 @@ export default function TaskDetailsModal() {
           {/* Top Bar Actions & Parent Breadcrumb */}
           <div className="flex items-center justify-between pb-3 border-b border-[#DFE1E6]">
             {parentTask ? (
-              <button
+              <Button
                 type="button"
+                variant="link"
+                size="xs"
                 onClick={() => setSelectedTask(parentTask)}
-                className="text-xs font-semibold text-[#0052CC] hover:underline flex items-center space-x-1"
+                className="text-xs font-semibold text-[#0052CC] hover:underline flex items-center space-x-1 h-auto p-0"
               >
                 <ArrowUpRight className="w-3.5 h-3.5" />
                 <span>Parent: {parentTask.title}</span>
-              </button>
+              </Button>
             ) : (
               <span className="text-[11px] font-bold text-[#5E6C84] uppercase tracking-wider">
                 Main Issue

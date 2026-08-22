@@ -4,6 +4,15 @@ import React, { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { Loader2, Check, CreditCard, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import ProjectLayoutShell from "@/components/projects/ProjectLayoutShell";
@@ -306,48 +315,59 @@ export default function BillingPage() {
                 </div>
               ) : (
                 <div className="border border-[#DFE1E6] rounded-md overflow-hidden bg-white">
-                  <table className="w-full text-left text-sm">
-                    <thead className="bg-[#FAFBFC] border-b border-[#DFE1E6]">
-                      <tr>
-                        <th className="px-4 py-3 font-semibold text-[#5E6C84] text-xs uppercase tracking-wider">Date</th>
-                        <th className="px-4 py-3 font-semibold text-[#5E6C84] text-xs uppercase tracking-wider text-right">Amount</th>
-                        <th className="px-4 py-3 font-semibold text-[#5E6C84] text-xs uppercase tracking-wider text-center">Receipt</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#DFE1E6]">
+                  <Table className="w-full text-left text-sm">
+                    <TableHeader className="bg-[#FAFBFC] border-b border-[#DFE1E6]">
+                      <TableRow className="hover:bg-transparent border-[#DFE1E6]">
+                        <TableHead className="px-4 py-3 font-semibold text-[#5E6C84] text-xs uppercase tracking-wider h-auto">Date</TableHead>
+                        <TableHead className="px-4 py-3 font-semibold text-[#5E6C84] text-xs uppercase tracking-wider text-right h-auto">Amount</TableHead>
+                        <TableHead className="px-4 py-3 font-semibold text-[#5E6C84] text-xs uppercase tracking-wider text-center h-auto">Receipt</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody className="divide-y divide-[#DFE1E6]">
                       {invoices.map((inv) => (
-                        <tr key={inv.id} className="hover:bg-[#FAFBFC]">
-                          <td className="px-4 py-3 text-[#172B4D] text-xs">
+                        <TableRow key={inv.id} className="hover:bg-[#FAFBFC] border-[#DFE1E6]">
+                          <TableCell className="px-4 py-3 text-[#172B4D] text-xs">
                             {format(new Date(inv.created * 1000), "MMM do, yyyy")}
                             <div className="mt-0.5">
-                              <span className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold ${
-                                inv.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
-                              }`}>
-                                {inv.status?.toUpperCase()}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-[#172B4D] font-medium text-right">
-                            ${(inv.amount_paid / 100).toFixed(2)}
-                          </td>
-                          <td className="px-4 py-3 text-center">
-                            {inv.hosted_invoice_url ? (
-                              <a 
-                                href={inv.hosted_invoice_url} 
-                                target="_blank" 
-                                rel="noreferrer"
-                                className="text-[#0052CC] hover:underline text-xs font-medium"
+                              <Badge
+                                variant="outline"
+                                className={`text-[10px] font-bold uppercase rounded-[2px] px-1.5 py-0 ${
+                                  inv.status === "paid"
+                                    ? "bg-green-50 text-green-700 border-green-200"
+                                    : "bg-gray-50 text-gray-700 border-gray-200"
+                                }`}
                               >
-                                PDF
-                              </a>
+                                {inv.status?.toUpperCase()}
+                              </Badge>
+                            </div>
+                          </TableCell>
+                          <TableCell className="px-4 py-3 text-[#172B4D] font-medium text-right text-xs">
+                            ${(inv.amount_paid / 100).toFixed(2)}
+                          </TableCell>
+                          <TableCell className="px-4 py-3 text-center text-xs">
+                            {inv.hosted_invoice_url ? (
+                              <Button
+                                asChild
+                                variant="link"
+                                size="xs"
+                                className="text-[#0052CC] hover:underline text-xs font-medium h-auto p-0"
+                              >
+                                <a 
+                                  href={inv.hosted_invoice_url} 
+                                  target="_blank" 
+                                  rel="noreferrer"
+                                >
+                                  PDF
+                                </a>
+                              </Button>
                             ) : (
                               <span className="text-gray-400 text-xs">-</span>
                             )}
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 </div>
               )}
             </section>

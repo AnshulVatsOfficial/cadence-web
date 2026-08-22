@@ -25,6 +25,8 @@ import CustomAlertDialog from "../shared/CustomAlertDialog";
 import InformationBanner from "../shared/InformationBanner";
 import SubscriptionUpgradeFlow from "../billing/SubscriptionUpgradeFlow";
 import { Skeleton } from "../ui/skeleton";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 import {
   Sidebar,
   SidebarContent,
@@ -119,11 +121,15 @@ export default function ProjectLayoutShell({
   const UserDropdown = () => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center space-x-2 p-1 rounded-full hover:bg-ds-bg-neutral transition-colors outline-none focus:ring-2 focus:ring-brand">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="flex items-center space-x-2 p-1 h-auto w-auto rounded-full hover:bg-ds-bg-neutral transition-colors outline-none focus-visible:ring-2 focus-visible:ring-brand"
+        >
           <div className="w-8 h-8 rounded-full bg-brand text-white font-bold text-xs flex items-center justify-center shadow-sm">
             {getInitials(user?.name, user?.email)}
           </div>
-        </button>
+        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56 bg-white border border-[#DFE1E6] shadow-md rounded-[3px]" align="end">
         <div className="px-3 py-2 border-b border-[#DFE1E6]">
@@ -359,13 +365,13 @@ export default function ProjectLayoutShell({
             <div className="flex items-center space-x-4">
               {activeProject && setSearchQuery && (
                 <div className="relative">
-                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#5E6C84]" />
-                  <input
+                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#5E6C84] z-10 pointer-events-none" />
+                  <Input
                     type="text"
                     placeholder="Search details..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-48 pl-8 pr-3 py-1.5 text-xs bg-[#FAFBFC] border border-[#DFE1E6] rounded-[3px] focus:outline-none focus:bg-white focus:border-[#0052CC] focus:ring-1 focus:ring-[#0052CC] transition-all"
+                    className="w-48 pl-8 pr-3 h-8 text-xs bg-[#FAFBFC] border-[#DFE1E6] rounded-[3px] focus-visible:bg-white focus-visible:ring-1 focus-visible:ring-[#0052CC] transition-all"
                   />
                 </div>
               )}

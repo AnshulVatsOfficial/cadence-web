@@ -4,6 +4,7 @@ import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/authContext";
 import { api } from "@/lib/api";
+import { Button } from "@/components/ui/button";
 
 function CallbackContent() {
   const searchParams = useSearchParams();
@@ -44,12 +45,13 @@ function CallbackContent() {
             Authentication Error
           </h2>
           <p className="text-sm text-ds-text-subtle mb-4">{error}</p>
-          <button
+          <Button
+            type="button"
             onClick={() => router.push("/login")}
-            className="py-2 px-4 bg-brand text-white font-semibold rounded-md text-sm hover:bg-brand-hover"
+            className="py-2 px-4 bg-brand text-white font-semibold rounded-[3px] text-sm hover:bg-brand-hover"
           >
             Return to Login
-          </button>
+          </Button>
         </div>
       </div>
     );

@@ -22,6 +22,7 @@ import InviteMembersModal from "../../components/projects/InviteMembersModal";
 import CustomAlertDialog from "../../components/shared/CustomAlertDialog";
 import EmptyState from "../../components/shared/EmptyState";
 import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
 import { Skeleton } from "../../components/ui/skeleton";
 import {
   DropdownMenu,
@@ -91,11 +92,15 @@ export default function ProjectsDashboardPage() {
   const UserDropdown = () => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center space-x-2 p-1 rounded-full hover:bg-ds-bg-neutral transition-colors outline-none focus:ring-2 focus:ring-brand">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="flex items-center space-x-2 p-1 h-auto w-auto rounded-full hover:bg-ds-bg-neutral transition-colors outline-none focus-visible:ring-2 focus-visible:ring-brand"
+        >
           <div className="w-8 h-8 rounded-full bg-brand text-white font-bold text-xs flex items-center justify-center shadow-sm">
             {getInitials(user?.name, user?.email)}
           </div>
-        </button>
+        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56 bg-white border border-[#DFE1E6] shadow-md rounded-[3px]" align="end">
         <div className="px-3 py-2 border-b border-[#DFE1E6]">
@@ -153,13 +158,13 @@ export default function ProjectsDashboardPage() {
           <div className="mb-6">
             {projects.length > 0 && !loading && (
               <div className="relative w-full md:w-72">
-                <Search className="w-4.5 h-4.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#5E6C84]" />
-                <input
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#5E6C84] z-10 pointer-events-none" />
+                <Input
                   type="text"
                   placeholder="Search projects..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 text-xs bg-white border border-[#DFE1E6] rounded-[3px] focus:outline-none focus:border-[#0052CC] focus:ring-1 focus:ring-[#0052CC] transition-all shadow-sm"
+                  className="w-full pl-9 pr-4 h-9 text-xs bg-white border-[#DFE1E6] rounded-[3px] focus-visible:ring-1 focus-visible:ring-[#0052CC] transition-all shadow-xs"
                 />
               </div>
             )}
@@ -241,38 +246,47 @@ export default function ProjectsDashboardPage() {
                         className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-1"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <button
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-xs"
                           onClick={() => {
                             setSelectedProject(p);
                             setShowEditModal(true);
                           }}
                           title="Edit Project"
-                          className="p-1 text-[#5E6C84] hover:text-[#172B4D] hover:bg-[#F4F5F7] rounded-[2px]"
+                          className="h-7 w-7 p-1 text-[#5E6C84] hover:text-[#172B4D] hover:bg-[#F4F5F7] rounded-[2px]"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
-                        </button>
+                        </Button>
                         {p.status === "INACTIVE" ? (
-                          <button
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-xs"
                             onClick={() => {
                               setSelectedProject(p);
                               setShowDeleteModal(true);
                             }}
                             title="Reactivate Project"
-                            className="p-1 text-[#5E6C84] hover:text-emerald-600 hover:bg-emerald-50 rounded-[2px]"
+                            className="h-7 w-7 p-1 text-[#5E6C84] hover:text-emerald-600 hover:bg-emerald-50 rounded-[2px]"
                           >
                             <PlayCircle className="w-3.5 h-3.5" />
-                          </button>
+                          </Button>
                         ) : (
-                          <button
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-xs"
                             onClick={() => {
                               setSelectedProject(p);
                               setShowDeleteModal(true);
                             }}
                             title="Deactivate Project"
-                            className="p-1 text-[#5E6C84] hover:text-[#DE350B] hover:bg-red-50 rounded-[2px]"
+                            className="h-7 w-7 p-1 text-[#5E6C84] hover:text-[#DE350B] hover:bg-red-50 rounded-[2px]"
                           >
                             <PauseCircle className="w-3.5 h-3.5" />
-                          </button>
+                          </Button>
                         )}
                       </div>
                     )}

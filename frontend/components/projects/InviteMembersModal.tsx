@@ -10,6 +10,14 @@ import {
 } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 import { api } from "@/lib/api";
 import { useProject } from "./ProjectContext";
 
@@ -109,59 +117,68 @@ export default function InviteMembersModal({
         )}
 
         <form onSubmit={handleInvite} className="space-y-4">
-          <div>
-            <label className="block text-xs font-bold text-[#5E6C84] uppercase tracking-wider mb-1.5">
+          <div className="space-y-1.5">
+            <Label className="block text-xs font-bold text-[#5E6C84] uppercase tracking-wider">
               Select Project
-            </label>
-            <select
+            </Label>
+            <Select
               value={projectId}
-              onChange={(e) => setProjectId(e.target.value)}
+              onValueChange={setProjectId}
               disabled={isProjectFixed}
-              className={`w-full text-sm py-2 px-3 border rounded-[3px] focus:outline-none focus:ring-1 transition-all ${
-                isProjectFixed
-                  ? "bg-[#F4F5F7] text-[#5E6C84] border-[#DFE1E6] cursor-not-allowed"
-                  : "bg-white border-[#DFE1E6] focus:border-[#0052CC] focus:ring-[#0052CC]"
-              }`}
-              required
             >
-              <option value="" disabled>
-                -- Select a project --
-              </option>
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger
+                className={`w-full text-sm h-10 border-[#DFE1E6] rounded-[3px] focus-visible:ring-1 focus-visible:ring-[#0052CC] ${
+                  isProjectFixed
+                    ? "bg-[#F4F5F7] text-[#5E6C84] cursor-not-allowed"
+                    : "bg-white"
+                }`}
+              >
+                <SelectValue placeholder="-- Select a project --" />
+              </SelectTrigger>
+              <SelectContent className="bg-white border-[#DFE1E6]">
+                {projects.map((p) => (
+                  <SelectItem key={p.id} value={p.id} className="text-sm">
+                    {p.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-[#5E6C84] uppercase tracking-wider mb-1.5">
+          <div className="space-y-1.5">
+            <Label className="block text-xs font-bold text-[#5E6C84] uppercase tracking-wider">
               Email Address
-            </label>
+            </Label>
             <Input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="colleague@example.com"
-              className="w-full text-sm border-[#DFE1E6] rounded-[3px] focus:border-[#0052CC] focus:ring-1 focus:ring-[#0052CC]"
+              className="w-full text-sm h-10 border-[#DFE1E6] rounded-[3px] focus-visible:ring-1 focus-visible:ring-[#0052CC]"
               required
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-[#5E6C84] uppercase tracking-wider mb-1.5">
+          <div className="space-y-1.5">
+            <Label className="block text-xs font-bold text-[#5E6C84] uppercase tracking-wider">
               Role
-            </label>
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="w-full text-sm py-2 px-3 bg-white border border-[#DFE1E6] rounded-[3px] focus:outline-none focus:border-[#0052CC] focus:ring-1 focus:ring-[#0052CC] transition-all"
-            >
-              <option value="MEMBER">Member (can edit issues)</option>
-              <option value="VIEWER">Viewer (read-only)</option>
-              <option value="ADMIN">Admin (can manage settings)</option>
-            </select>
+            </Label>
+            <Select value={role} onValueChange={setRole}>
+              <SelectTrigger className="w-full text-sm h-10 bg-white border-[#DFE1E6] rounded-[3px] focus-visible:ring-1 focus-visible:ring-[#0052CC]">
+                <SelectValue placeholder="Select role" />
+              </SelectTrigger>
+              <SelectContent className="bg-white border-[#DFE1E6]">
+                <SelectItem value="MEMBER" className="text-sm">
+                  Member (can edit issues)
+                </SelectItem>
+                <SelectItem value="VIEWER" className="text-sm">
+                  Viewer (read-only)
+                </SelectItem>
+                <SelectItem value="ADMIN" className="text-sm">
+                  Admin (can manage settings)
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <DialogFooter className="mt-6">

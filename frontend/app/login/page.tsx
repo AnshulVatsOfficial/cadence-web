@@ -11,6 +11,8 @@ import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import PasswordInput from "@/components/shared/PasswordInput";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -150,14 +152,14 @@ function LoginPageContent() {
           {/* Form */}
           <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold uppercase text-ds-text-subtle mb-1">
+              <Label className="block text-xs font-semibold uppercase text-ds-text-subtle mb-1">
                 Email Address
-              </label>
-              <input
+              </Label>
+              <Input
                 type="email"
                 {...register("email")}
                 placeholder="name@company.com"
-                className="w-full px-3 py-2 border border-ds-border rounded-md bg-ds-bg text-ds-text text-sm focus:outline-none focus:border-brand transition-colors"
+                className="w-full h-10 px-3 py-2 border-ds-border rounded-md bg-ds-bg text-ds-text text-sm focus-visible:ring-1 focus-visible:ring-brand transition-colors"
               />
               {errors.email && (
                 <p className="mt-1 text-xs text-red-600 font-medium">
@@ -167,9 +169,9 @@ function LoginPageContent() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase text-ds-text-subtle mb-1">
+              <Label className="block text-xs font-semibold uppercase text-ds-text-subtle mb-1">
                 Password
-              </label>
+              </Label>
               <PasswordInput
                 {...register("password")}
                 placeholder="••••••••"

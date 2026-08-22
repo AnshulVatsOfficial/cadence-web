@@ -345,13 +345,15 @@ function ProjectBoardContent() {
                             </form>
                           </div>
                         ) : (
-                          <button
+                          <Button
+                            type="button"
+                            variant="outline"
                             onClick={() => setShowAddColumn(true)}
-                            className="w-full flex items-center space-x-2 p-3 bg-[#F4F5F7] hover:bg-[#EBECF0] border border-dashed border-[#DFE1E6] rounded-[3px] text-xs font-semibold text-[#5E6C84] hover:text-[#172B4D] transition-colors"
+                            className="w-full flex items-center justify-start space-x-2 p-3 h-auto bg-[#F4F5F7] hover:bg-[#EBECF0] border-dashed border-[#DFE1E6] rounded-[3px] text-xs font-semibold text-[#5E6C84] hover:text-[#172B4D] transition-colors shadow-none"
                           >
                             <Plus className="w-4 h-4" />
                             <span>Add Column</span>
-                          </button>
+                          </Button>
                         )}
                       </div>
                     )}

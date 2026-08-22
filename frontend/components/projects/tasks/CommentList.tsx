@@ -123,8 +123,10 @@ function CommentItem({
 
             <div className="flex items-center gap-1">
               {isWritable && !isEditing && (
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="xs"
                   onClick={() => {
                     if (isReplying) {
                       setReplyingToId(null);
@@ -134,33 +136,37 @@ function CommentItem({
                       setReplyText("");
                     }
                   }}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity px-1.5 py-0.5 text-[10px] font-semibold text-[#0052CC] hover:bg-[#DEEBFF] rounded-[2px] flex items-center gap-1"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity h-6 px-1.5 py-0.5 text-[10px] font-semibold text-[#0052CC] hover:bg-[#DEEBFF] rounded-[2px] flex items-center gap-1"
                 >
                   <Reply className="w-3 h-3" />
                   <span>Reply</span>
-                </button>
+                </Button>
               )}
 
               {isOwner && isWritable && !isEditing && (
                 <>
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="icon-xs"
                     onClick={() => {
                       setEditingId(comment.id);
                       setEditText(comment.content);
                       setReplyingToId(null);
                     }}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-[#5E6C84] hover:text-[#0052CC] hover:bg-[#DEEBFF] rounded-[2px]"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-1 text-[#5E6C84] hover:text-[#0052CC] hover:bg-[#DEEBFF] rounded-[2px]"
                     title="Edit comment"
                   >
                     <Pencil className="w-3 h-3" />
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="icon-xs"
                     onClick={() => onDelete(comment.id)}
                     disabled={deletingId === comment.id}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-[#5E6C84] hover:text-[#DE350B] hover:bg-red-50 rounded-[2px]"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-1 text-[#5E6C84] hover:text-[#DE350B] hover:bg-red-50 rounded-[2px]"
                     title="Delete comment and all replies"
                   >
                     {deletingId === comment.id ? (
@@ -168,7 +174,7 @@ function CommentItem({
                     ) : (
                       <Trash2 className="w-3 h-3" />
                     )}
-                  </button>
+                  </Button>
                 </>
               )}
             </div>
@@ -620,29 +626,33 @@ export default function CommentList({
         </Label>
 
         <div className="flex items-center gap-1 bg-[#F4F5F7] p-0.5 rounded-[4px] border border-[#DFE1E6]">
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="xs"
             onClick={() => setActiveTab("comments")}
-            className={`px-2 py-1 text-[11px] font-semibold rounded-[3px] transition-colors ${
+            className={`px-2 py-1 h-auto text-[11px] font-semibold rounded-[3px] transition-colors ${
               activeTab === "comments"
-                ? "bg-white text-[#0052CC] shadow-2xs"
+                ? "bg-white text-[#0052CC] shadow-2xs hover:bg-white"
                 : "text-[#5E6C84] hover:text-[#172B4D]"
             }`}
           >
             Comments ({comments.length})
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="ghost"
+            size="xs"
             onClick={() => setActiveTab("history")}
-            className={`px-2 py-1 text-[11px] font-semibold rounded-[3px] transition-colors flex items-center gap-1 ${
+            className={`px-2 py-1 h-auto text-[11px] font-semibold rounded-[3px] transition-colors flex items-center gap-1 ${
               activeTab === "history"
-                ? "bg-white text-[#0052CC] shadow-2xs"
+                ? "bg-white text-[#0052CC] shadow-2xs hover:bg-white"
                 : "text-[#5E6C84] hover:text-[#172B4D]"
             }`}
           >
             <History className="w-3 h-3" />
             <span>Assignments ({assignmentHistory.length})</span>
-          </button>
+          </Button>
         </div>
       </div>
 
