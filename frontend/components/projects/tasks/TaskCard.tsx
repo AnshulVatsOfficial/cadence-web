@@ -103,11 +103,18 @@ export default function TaskCard({ task, isWritable = true }: TaskCardProps) {
       >
         {/* Header: Title & Quick Actions (Edit & Delete) */}
         <div className="flex items-start justify-between">
-          <h4
-            className="text-xs font-semibold text-[#172B4D] leading-snug hover:text-[#0052CC] transition-colors pr-12"
-          >
-            {task.title}
-          </h4>
+          <div className="flex flex-col space-y-0.5 pr-12">
+            {task.issueKey && (
+              <span className="text-[10px] font-bold text-[#5E6C84]">
+                {task.issueKey}
+              </span>
+            )}
+            <h4
+              className="text-xs font-semibold text-[#172B4D] leading-snug hover:text-[#0052CC] transition-colors"
+            >
+              {task.title}
+            </h4>
+          </div>
 
           <div className="absolute top-2 right-2 flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <Button
@@ -151,6 +158,17 @@ export default function TaskCard({ task, isWritable = true }: TaskCardProps) {
               ? task.description
               : JSON.stringify(task.description)}
           </p>
+        )}
+
+        {/* Tags */}
+        {task.tags && task.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-1.5">
+            {task.tags.map((tag: string, index: number) => (
+              <Badge key={index} variant="secondary" className="text-[9px] px-1 py-0 h-4 bg-[#EAE6FF] text-[#403294] font-semibold">
+                {tag}
+              </Badge>
+            ))}
+          </div>
         )}
 
         {/* Subtask Summary & Toggle */}

@@ -12,7 +12,7 @@ import { AssigneeSelect } from "@/components/shared/AssigneeSelect";
 import { TimeUnit, convertToMinutes } from "@/lib/timeUtils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/shared/RichTextEditor";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -256,11 +256,15 @@ export default function CreateTaskModal() {
         {/* Description */}
         <div className="space-y-1">
           <Label className="text-xs font-semibold text-[#172B4D]">Description</Label>
-          <Textarea
-            {...register("description")}
-            placeholder="Add detailed task requirements, context, or instructions..."
-            rows={3}
-            className="text-xs border-[#DFE1E6] resize-none focus-visible:ring-1 focus-visible:ring-[#0052CC]"
+          <Controller
+            name="description"
+            control={control}
+            render={({ field }) => (
+              <RichTextEditor
+                content={field.value || ""}
+                onChange={field.onChange}
+              />
+            )}
           />
         </div>
 

@@ -21,6 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/shared/RichTextEditor";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -30,7 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Trash2, Calendar, Clock, User, ArrowUpRight } from "lucide-react";
+import { Trash2, Calendar, Clock, User, ArrowUpRight, Share2 } from "lucide-react";
 
 const updateTaskSchema = z.object({
   title: z
@@ -98,8 +99,8 @@ export default function TaskDetailsModal() {
           typeof selectedTask.description === "string"
             ? selectedTask.description
             : selectedTask.description
-            ? JSON.stringify(selectedTask.description)
-            : "",
+              ? JSON.stringify(selectedTask.description)
+              : "",
         parentTaskId: selectedTask.parentTaskId || null,
         assigneeIds: currentAssigneeIds,
         dueDate: dueDateParsed,
@@ -202,22 +203,41 @@ export default function TaskDetailsModal() {
               </Button>
             ) : (
               <span className="text-[11px] font-bold text-[#5E6C84] uppercase tracking-wider">
-                Main Issue
+                {selectedTask.issueKey || (parentTask ? "Subtask" : "Main Issue")}
               </span>
             )}
 
-            {isWritable && (
+            <div className="flex items-center space-x-2">
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => setShowDeleteConfirm(true)}
-                className="h-7 px-2 text-xs text-[#DE350B] hover:bg-[#FFEBEB] rounded-[3px] space-x-1"
+                onClick={() => {
+                  const url = new URL(window.location.href);
+                  url.searchParams.set("taskId", selectedTask.id);
+                  navigator.clipboard.writeText(url.toString());
+                  alert("Link copied to clipboard!");
+                }}
+                className="h-7 px-2 text-xs text-[#5E6C84] hover:bg-[#EBECF0] rounded-[3px] space-x-1"
+                title="Share Ticket"
               >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span>Delete</span>
+                <Share2 className="w-3.5 h-3.5" />
+                <span>Share</span>
               </Button>
-            )}
+
+              {isWritable && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="h-7 px-2 text-xs text-[#DE350B] hover:bg-[#FFEBEB] rounded-[3px] space-x-1"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete</span>
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Main 2-Column Responsive Layout */}
@@ -378,12 +398,16 @@ export default function TaskDetailsModal() {
               {/* Description */}
               <div className="space-y-1 pt-2 border-t border-[#DFE1E6]">
                 <Label className="text-xs font-semibold text-[#172B4D]">Description</Label>
-                <Textarea
-                  {...register("description")}
-                  disabled={!isWritable}
-                  rows={3}
-                  placeholder="Add description..."
-                  className="text-xs border-[#DFE1E6] resize-none focus-visible:ring-1 focus-visible:ring-[#0052CC]"
+                <Controller
+                  name="description"
+                  control={control}
+                  render={({ field }) => (
+                    <RichTextEditor
+                      content={field.value || ""}
+                      onChange={field.onChange}
+                      disabled={!isWritable}
+                    />
+                  )}
                 />
               </div>
 
