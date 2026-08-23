@@ -2,7 +2,7 @@ import axios from "axios";
 import { toast } from "sonner";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+  process.env.NEXT_PUBLIC_API_URL || "/api";
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -61,10 +61,10 @@ api.interceptors.response.use(
     if (error.response?.status >= 500) {
       toast.error("Something went wrong on our end. Please try again.");
     }
-    
+
     // Show toast for 400 validation/bad requests (optional, maybe skip if handled locally)
     if (error.response?.status === 400 && error.response.data?.error?.message) {
-       toast.error(error.response.data.error.message);
+      toast.error(error.response.data.error.message);
     }
 
     if (
