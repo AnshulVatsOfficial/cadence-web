@@ -15,12 +15,14 @@ import {
   User as UserIcon,
   Mail,
   CreditCard,
+  Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/lib/authContext";
 import { api } from "@/lib/api";
 import { useProject } from "./ProjectContext";
 import CreateProjectModal from "./CreateProjectModal";
 import EditProjectModal from "./EditProjectModal";
+import AICopilotChatDrawer from "./AICopilotChatDrawer";
 import CustomAlertDialog from "../shared/CustomAlertDialog";
 import InformationBanner from "../shared/InformationBanner";
 import SubscriptionUpgradeFlow from "../billing/SubscriptionUpgradeFlow";
@@ -86,6 +88,7 @@ export default function ProjectLayoutShell({
 
   const [isDeletingProj, setIsDeletingProj] = useState(false);
   const [pendingInviteCount, setPendingInviteCount] = useState(0);
+  const [showCopilotDrawer, setShowCopilotDrawer] = useState(false);
 
   React.useEffect(() => {
     if (user) {
@@ -362,7 +365,16 @@ export default function ProjectLayoutShell({
               )}
             </div>
 
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
+              {activeProject && (
+                <Button
+                  onClick={() => setShowCopilotDrawer(true)}
+                  className="h-8 bg-[#0052CC] hover:bg-[#0747A6] text-white text-xs font-semibold px-3 rounded-[3px] shadow-sm flex items-center space-x-1.5 transition-all"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
+                  <span>AI Copilot</span>
+                </Button>
+              )}
               {activeProject && setSearchQuery && (
                 <div className="relative">
                   <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#5E6C84] z-10 pointer-events-none" />
@@ -455,6 +467,11 @@ export default function ProjectLayoutShell({
           isOpen={showUpgradeModal}
           onClose={() => setShowUpgradeModal(false)}
           alertMessage={upgradeAlertMessage}
+        />
+
+        <AICopilotChatDrawer
+          isOpen={showCopilotDrawer}
+          onClose={() => setShowCopilotDrawer(false)}
         />
       </div>
     </SidebarProvider>

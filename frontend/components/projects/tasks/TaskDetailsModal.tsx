@@ -6,6 +6,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useProject } from "../ProjectContext";
 import { api } from "@/lib/api";
+import { extractPlainText } from "@/lib/utils";
 import CustomDialog from "@/components/shared/CustomDialog";
 import CustomAlertDialog from "@/components/shared/CustomAlertDialog";
 import SubtaskList from "./SubtaskList";
@@ -95,12 +96,7 @@ export default function TaskDetailsModal() {
         stageId: selectedTask.stageId || stages[0]?.id || "",
         issueTypeId: selectedTask.issueTypeId || issueTypes[0]?.id || "",
         priority: selectedTask.priority || "MEDIUM",
-        description:
-          typeof selectedTask.description === "string"
-            ? selectedTask.description
-            : selectedTask.description
-              ? JSON.stringify(selectedTask.description)
-              : "",
+        description: extractPlainText(selectedTask.description),
         parentTaskId: selectedTask.parentTaskId || null,
         assigneeIds: currentAssigneeIds,
         dueDate: dueDateParsed,

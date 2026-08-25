@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/authContext";
+import { extractPlainText } from "@/lib/utils";
 import CustomAlertDialog from "@/components/shared/CustomAlertDialog";
 import {
   MessageSquare,
@@ -230,7 +231,7 @@ function CommentItem({
             </div>
           ) : (
             <p className="text-xs text-[#172B4D] mt-1 whitespace-pre-wrap leading-relaxed">
-              {comment.content}
+              {extractPlainText(comment.content)}
             </p>
           )}
 
