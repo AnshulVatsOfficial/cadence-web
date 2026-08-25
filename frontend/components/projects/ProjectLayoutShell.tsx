@@ -16,7 +16,9 @@ import {
   Mail,
   CreditCard,
   Sparkles,
+  FileText,
 } from "lucide-react";
+import ProjectNotesModal from "./ProjectNotesModal";
 import { useAuth } from "@/lib/authContext";
 import { api } from "@/lib/api";
 import { useProject } from "./ProjectContext";
@@ -89,6 +91,7 @@ export default function ProjectLayoutShell({
   const [isDeletingProj, setIsDeletingProj] = useState(false);
   const [pendingInviteCount, setPendingInviteCount] = useState(0);
   const [showCopilotDrawer, setShowCopilotDrawer] = useState(false);
+  const [showNotesModal, setShowNotesModal] = useState(false);
 
   React.useEffect(() => {
     if (user) {
@@ -368,6 +371,16 @@ export default function ProjectLayoutShell({
             <div className="flex items-center space-x-3">
               {activeProject && (
                 <Button
+                  onClick={() => setShowNotesModal(true)}
+                  variant="outline"
+                  className="h-8 border-[#DFE1E6] hover:bg-[#F4F5F7] text-[#172B4D] text-xs font-semibold px-3 rounded-[3px] shadow-sm flex items-center space-x-1.5 transition-all"
+                >
+                  <FileText className="w-3.5 h-3.5 text-[#0052CC]" />
+                  <span>Project Notes</span>
+                </Button>
+              )}
+              {activeProject && (
+                <Button
                   onClick={() => setShowCopilotDrawer(true)}
                   className="h-8 bg-[#0052CC] hover:bg-[#0747A6] text-white text-xs font-semibold px-3 rounded-[3px] shadow-sm flex items-center space-x-1.5 transition-all"
                 >
@@ -473,6 +486,14 @@ export default function ProjectLayoutShell({
           isOpen={showCopilotDrawer}
           onClose={() => setShowCopilotDrawer(false)}
         />
+
+        {activeProject && (
+          <ProjectNotesModal
+            isOpen={showNotesModal}
+            onClose={() => setShowNotesModal(false)}
+            projectId={activeProject.id}
+          />
+        )}
       </div>
     </SidebarProvider>
   );

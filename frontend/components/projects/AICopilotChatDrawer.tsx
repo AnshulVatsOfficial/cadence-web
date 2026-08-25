@@ -26,6 +26,17 @@ const PRESET_PROMPTS = [
 
 function formatActionBadge(actionName: string) {
   const map: Record<string, { label: string; bg: string; text: string; border: string }> = {
+    invite_member: { label: "Member Invited", bg: "bg-[#E3FCEF]", text: "text-[#006644]", border: "border-[#ABF5D1]" },
+    list_members: { label: "Members Checked", bg: "bg-[#F4F5F7]", text: "text-[#42526E]", border: "border-[#DFE1E6]" },
+    create_stage: { label: "Column Created", bg: "bg-[#E3FCEF]", text: "text-[#006644]", border: "border-[#ABF5D1]" },
+    rename_stage: { label: "Column Renamed", bg: "bg-[#DEEBFF]", text: "text-[#0747A6]", border: "border-[#B3D4FF]" },
+    delete_stage: { label: "Column Deleted", bg: "bg-[#FFEBEB]", text: "text-[#BF2600]", border: "border-[#FFBDAD]" },
+    create_note: { label: "Note Created", bg: "bg-[#E3FCEF]", text: "text-[#006644]", border: "border-[#ABF5D1]" },
+    search_notes: { label: "Notes Searched", bg: "bg-[#F4F5F7]", text: "text-[#42526E]", border: "border-[#DFE1E6]" },
+    get_team_workload: { label: "Workload Analyzed", bg: "bg-[#E3FCEF]", text: "text-[#006644]", border: "border-[#ABF5D1]" },
+    get_overdue_tasks: { label: "Overdue Checked", bg: "bg-[#FFEBEB]", text: "text-[#BF2600]", border: "border-[#FFBDAD]" },
+    bulk_move_tasks: { label: "Bulk Move", bg: "bg-[#DEEBFF]", text: "text-[#0747A6]", border: "border-[#B3D4FF]" },
+    bulk_assign_tasks: { label: "Bulk Assign", bg: "bg-[#DEEBFF]", text: "text-[#0747A6]", border: "border-[#B3D4FF]" },
     create_task: { label: "Task Created", bg: "bg-[#E3FCEF]", text: "text-[#006644]", border: "border-[#ABF5D1]" },
     update_task: { label: "Task Updated", bg: "bg-[#DEEBFF]", text: "text-[#0747A6]", border: "border-[#B3D4FF]" },
     assign_task: { label: "Task Assigned", bg: "bg-[#DEEBFF]", text: "text-[#0747A6]", border: "border-[#B3D4FF]" },
