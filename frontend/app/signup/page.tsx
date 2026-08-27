@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/lib/authContext";
@@ -13,6 +13,13 @@ import { Loader2, Check, X, Mail, ArrowLeft, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const passwordSchema = z
   .string()
@@ -27,6 +34,16 @@ const signupSchema = z.object({
   name: z.string().min(2, "Full name is required (at least 2 characters)"),
   email: z.string().email("Please enter a valid email address"),
   password: passwordSchema,
+  jobRole: z.string().min(1, "Job role is required"),
+  otherJobRole: z.string().optional(),
+}).refine((data) => {
+  if (data.jobRole === "Other" && (!data.otherJobRole || data.otherJobRole.trim() === "")) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Please specify your job role",
+  path: ["otherJobRole"],
 });
 
 type SignupFormValues = z.infer<typeof signupSchema>;
@@ -50,6 +67,7 @@ function SignupPageContent() {
     register,
     handleSubmit,
     watch,
+    control,
     formState: { errors, isValid, isSubmitting },
   } = useForm<SignupFormValues>({
     mode: "onChange",
@@ -58,6 +76,8 @@ function SignupPageContent() {
       name: "",
       email: "",
       password: "",
+      jobRole: "",
+      otherJobRole: "",
     },
   });
 
@@ -92,8 +112,10 @@ function SignupPageContent() {
     setError(null);
     setResendMessage(null);
 
+    const finalJobRole = data.jobRole === "Other" ? data.otherJobRole : data.jobRole;
+
     try {
-      await signup(data.email, data.password, data.name);
+      await signup(data.email, data.password, data.name, finalJobRole);
       setSubmittedEmail(data.email);
       setMagicLinkSent(true);
     } catch (err: any) {
@@ -331,6 +353,54 @@ function SignupPageContent() {
                   </div>
                 )}
               </div>
+
+              <div>
+                <Label className="block text-xs font-semibold uppercase text-ds-text-subtle mb-1">
+                  Job Role <span className="text-red-500">*</span>
+                </Label>
+                <Controller
+                  name="jobRole"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value || undefined}>
+                      <SelectTrigger className="w-full h-10 px-3 py-2 border-ds-border rounded-md bg-ds-bg text-ds-text text-sm focus:ring-1 focus:ring-brand transition-colors">
+                        <SelectValue placeholder="Select your job role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Software Engineer">Software Engineer</SelectItem>
+                        <SelectItem value="Product Manager">Product Manager</SelectItem>
+                        <SelectItem value="Designer">Designer</SelectItem>
+                        <SelectItem value="Data Scientist">Data Scientist</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.jobRole && (
+                  <p className="mt-1 text-xs text-red-600 font-medium">
+                    {errors.jobRole.message}
+                  </p>
+                )}
+              </div>
+
+              {watch("jobRole") === "Other" && (
+                <div>
+                  <Label className="block text-xs font-semibold uppercase text-ds-text-subtle mb-1">
+                    Please specify <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    type="text"
+                    {...register("otherJobRole")}
+                    placeholder="E.g. Marketing Specialist"
+                    className="w-full h-10 px-3 py-2 border-ds-border rounded-md bg-ds-bg text-ds-text text-sm focus-visible:ring-1 focus-visible:ring-brand transition-colors"
+                  />
+                  {errors.otherJobRole && (
+                    <p className="mt-1 text-xs text-red-600 font-medium">
+                      {errors.otherJobRole.message}
+                    </p>
+                  )}
+                </div>
+              )}
 
               <Button
                 type="submit"
