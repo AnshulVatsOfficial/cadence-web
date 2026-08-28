@@ -52,14 +52,10 @@ import {
 
 interface ProjectLayoutShellProps {
   children: React.ReactNode;
-  searchQuery?: string;
-  setSearchQuery?: (query: string) => void;
 }
 
 export default function ProjectLayoutShell({
   children,
-  searchQuery = "",
-  setSearchQuery,
 }: ProjectLayoutShellProps) {
   const { user, logout } = useAuth();
   const router = useRouter();
@@ -86,6 +82,8 @@ export default function ProjectLayoutShell({
     showUpgradeModal,
     setShowUpgradeModal,
     upgradeAlertMessage,
+    searchQuery,
+    setSearchQuery,
   } = useProject();
 
   const [isDeletingProj, setIsDeletingProj] = useState(false);
@@ -302,7 +300,18 @@ export default function ProjectLayoutShell({
                 <CreditCard className="w-3.5 h-3.5 flex-shrink-0" />
                 <span className="truncate group-data-[collapsible=icon]:hidden">Billing</span>
               </SidebarMenuButton>
-              
+
+              <SidebarMenuButton
+                onClick={() => router.push("/projects/api-keys")}
+                className={`w-full flex items-center gap-x-2.5 px-2 py-1.5 rounded-[3px] text-left text-xs group-data-[collapsible=icon]:justify-center ${
+                  pathname === "/projects/api-keys"
+                    ? "bg-[#DEEBFF] text-[#0747A6] font-semibold"
+                    : "text-[#172B4D] hover:bg-[#EBECF0]"
+                }`}
+              >
+                <CreditCard className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="truncate group-data-[collapsible=icon]:hidden">API Keys</span>
+              </SidebarMenuButton>
               {activeProject && (
                 <SidebarMenuButton
                   onClick={() => router.push(`/projects/${activeProject.id}`)}

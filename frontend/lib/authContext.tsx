@@ -22,7 +22,7 @@ interface AuthContextType {
   accessToken: string | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, name: string) => Promise<MagicLinkResponse>;
+  signup: (email: string, password: string, name: string, jobRole?: string) => Promise<MagicLinkResponse>;
   sendMagicLink: (email: string) => Promise<MagicLinkResponse>;
   verifyMagicLink: (token: string) => Promise<User>;
   loginWithGoogle: (idToken: string) => Promise<void>;
@@ -105,8 +105,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     updateTokensAndUser(res.data.user, res.data.accessToken);
   };
 
-  const signup = async (email: string, password: string, name: string): Promise<MagicLinkResponse> => {
-    const res = await api.post("/auth/signup", { email, password, name });
+  const signup = async (email: string, password: string, name: string, jobRole?: string): Promise<MagicLinkResponse> => {
+    const res = await api.post("/auth/signup", { email, password, name, jobRole });
     return res.data;
   };
 

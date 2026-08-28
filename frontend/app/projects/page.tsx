@@ -14,8 +14,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/authContext";
 import { api } from "@/lib/api";
-import { ProjectProvider } from "../../components/projects/ProjectContext";
-import ProjectLayoutShell from "../../components/projects/ProjectLayoutShell";
+
 import CreateProjectModal from "../../components/projects/CreateProjectModal";
 import EditProjectModal from "../../components/projects/EditProjectModal";
 import InviteMembersModal from "../../components/projects/InviteMembersModal";
@@ -123,8 +122,7 @@ export default function ProjectsDashboardPage() {
   );
 
   return (
-    <ProjectProvider>
-      <ProjectLayoutShell>
+    <>
         <div className="flex-grow w-full px-4 md:px-8 py-10 flex flex-col bg-[#FAFBFC]">
           {/* Title and Controls */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -390,7 +388,6 @@ export default function ProjectsDashboardPage() {
         />
       )}
         </div>
-      </ProjectLayoutShell>
-    </ProjectProvider>
+    </>
   );
 }

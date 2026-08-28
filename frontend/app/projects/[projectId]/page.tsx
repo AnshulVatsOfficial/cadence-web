@@ -46,9 +46,7 @@ function getStatusBadgeStyles(status: string) {
 }
 
 function ProjectBoardContent() {
-  const { projectDetails, loadingProjects, profileError, fetchProjectDetails, openCreateTaskModal } = useProject();
-
-  const [searchQuery, setSearchQuery] = useState("");
+  const { projectDetails, loadingProjects, profileError, fetchProjectDetails, openCreateTaskModal, searchQuery, setSearchQuery } = useProject();
   const [localStages, setLocalStages] = useState<any[]>([]);
   const [localTasks, setLocalTasks] = useState<any[]>([]);
   const [showAddColumn, setShowAddColumn] = useState(false);
@@ -169,10 +167,7 @@ function ProjectBoardContent() {
 
   if (profileError) {
     return (
-      <ProjectLayoutShell
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-      >
+      <>
         <div className="p-6 h-full flex flex-col items-center justify-center space-y-4">
           <div className="text-red-500 font-semibold text-lg">Error loading project</div>
           <p className="text-gray-600">{profileError}</p>
@@ -180,16 +175,13 @@ function ProjectBoardContent() {
             Try Again
           </Button>
         </div>
-      </ProjectLayoutShell>
+      </>
     );
   }
 
   if (loadingProjects || !projectDetails) {
     return (
-      <ProjectLayoutShell
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-      >
+      <>
         <div className="p-6 h-full flex flex-col space-y-6">
           <div className="flex items-center space-x-3">
             <Skeleton className="h-6 w-48 bg-gray-200" />
@@ -208,18 +200,14 @@ function ProjectBoardContent() {
             ))}
           </div>
         </div>
-      </ProjectLayoutShell>
+      </>
     );
   }
 
   const topLevelTasksCount = localTasks.filter((t) => !t.parentTaskId).length;
 
   return (
-    <ProjectLayoutShell
-      searchQuery={searchQuery}
-      setSearchQuery={setSearchQuery}
-    >
-      <div className="h-full flex flex-col bg-white overflow-hidden">
+    <div className="flex-1 w-full bg-[#FAFBFC] overflow-x-hidden">
         {/* Sub-Header Metadata Bar */}
         <div className="px-6 py-3 border-b border-[#DFE1E6] flex items-center justify-between bg-white flex-shrink-0 select-none">
           <div className="flex items-center space-x-4">
@@ -410,14 +398,9 @@ function ProjectBoardContent() {
           isProjectFixed={true}
         />
       </div>
-    </ProjectLayoutShell>
   );
 }
 
 export default function ProjectBoardPage() {
-  return (
-    <ProjectProvider>
-      <ProjectBoardContent />
-    </ProjectProvider>
-  );
+  return <ProjectBoardContent />;
 }
