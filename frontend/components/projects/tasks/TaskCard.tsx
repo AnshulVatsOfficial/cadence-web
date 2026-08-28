@@ -15,6 +15,7 @@ import {
 import CustomAlertDialog from "@/components/shared/CustomAlertDialog";
 import { api } from "@/lib/api";
 import { displayFormattedTime } from "@/lib/timeUtils";
+import { extractPlainText } from "@/lib/utils";
 
 interface TaskCardProps {
   task: any;
@@ -151,12 +152,8 @@ export default function TaskCard({ task, isWritable = true }: TaskCardProps) {
 
         {/* Optional Description snippet */}
         {task.description && (
-          <p
-            className="text-[11px] text-[#5E6C84] line-clamp-2"
-          >
-            {typeof task.description === "string"
-              ? task.description
-              : JSON.stringify(task.description)}
+          <p className="text-[11px] text-[#5E6C84] line-clamp-2">
+            {extractPlainText(task.description)}
           </p>
         )}
 

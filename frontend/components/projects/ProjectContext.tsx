@@ -45,6 +45,8 @@ interface ProjectContextProps {
   createTaskDefaultParentId: string | null;
   setCreateTaskDefaultParentId: (parentId: string | null) => void;
   openCreateTaskModal: (options?: { stageId?: string; parentTaskId?: string }) => void;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
 }
 
 const ProjectContext = createContext<ProjectContextProps | undefined>(
@@ -83,6 +85,8 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
   const [createTaskDefaultStageId, setCreateTaskDefaultStageId] = useState<string | null>(null);
   const [createTaskDefaultParentId, setCreateTaskDefaultParentId] = useState<string | null>(null);
 
+  const [searchQuery, setSearchQuery] = useState("");
+
   // Fetch all projects for user
   const fetchProjects = useCallback(async () => {
     try {
@@ -106,6 +110,7 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
     try {
       const res = await api.get(`/projects/${projectId}`);
       setProjectDetails(res.data);
+      setActiveProject((prev: any) => (prev ? { ...prev, ...res.data } : res.data));
 
       // Keep selectedTask updated if it's currently open
       setSelectedTask((prevTask: any) => {
@@ -220,6 +225,8 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
         createTaskDefaultParentId,
         setCreateTaskDefaultParentId,
         openCreateTaskModal,
+        searchQuery,
+        setSearchQuery,
       }}
     >
       {children}

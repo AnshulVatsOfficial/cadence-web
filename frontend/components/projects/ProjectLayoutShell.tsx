@@ -15,12 +15,16 @@ import {
   User as UserIcon,
   Mail,
   CreditCard,
+  Sparkles,
+  FileText,
 } from "lucide-react";
+import ProjectNotesModal from "./ProjectNotesModal";
 import { useAuth } from "@/lib/authContext";
 import { api } from "@/lib/api";
 import { useProject } from "./ProjectContext";
 import CreateProjectModal from "./CreateProjectModal";
 import EditProjectModal from "./EditProjectModal";
+import AICopilotChatDrawer from "./AICopilotChatDrawer";
 import CustomAlertDialog from "../shared/CustomAlertDialog";
 import InformationBanner from "../shared/InformationBanner";
 import SubscriptionUpgradeFlow from "../billing/SubscriptionUpgradeFlow";
@@ -48,14 +52,10 @@ import {
 
 interface ProjectLayoutShellProps {
   children: React.ReactNode;
-  searchQuery?: string;
-  setSearchQuery?: (query: string) => void;
 }
 
 export default function ProjectLayoutShell({
   children,
-  searchQuery = "",
-  setSearchQuery,
 }: ProjectLayoutShellProps) {
   const { user, logout } = useAuth();
   const router = useRouter();
@@ -82,10 +82,14 @@ export default function ProjectLayoutShell({
     showUpgradeModal,
     setShowUpgradeModal,
     upgradeAlertMessage,
+    searchQuery,
+    setSearchQuery,
   } = useProject();
 
   const [isDeletingProj, setIsDeletingProj] = useState(false);
   const [pendingInviteCount, setPendingInviteCount] = useState(0);
+  const [showCopilotDrawer, setShowCopilotDrawer] = useState(false);
+  const [showNotesModal, setShowNotesModal] = useState(false);
 
   React.useEffect(() => {
     if (user) {
@@ -296,7 +300,18 @@ export default function ProjectLayoutShell({
                 <CreditCard className="w-3.5 h-3.5 flex-shrink-0" />
                 <span className="truncate group-data-[collapsible=icon]:hidden">Billing</span>
               </SidebarMenuButton>
-              
+
+              <SidebarMenuButton
+                onClick={() => router.push("/projects/api-keys")}
+                className={`w-full flex items-center gap-x-2.5 px-2 py-1.5 rounded-[3px] text-left text-xs group-data-[collapsible=icon]:justify-center ${
+                  pathname === "/projects/api-keys"
+                    ? "bg-[#DEEBFF] text-[#0747A6] font-semibold"
+                    : "text-[#172B4D] hover:bg-[#EBECF0]"
+                }`}
+              >
+                <CreditCard className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="truncate group-data-[collapsible=icon]:hidden">API Keys</span>
+              </SidebarMenuButton>
               {activeProject && (
                 <SidebarMenuButton
                   onClick={() => router.push(`/projects/${activeProject.id}`)}
@@ -362,7 +377,26 @@ export default function ProjectLayoutShell({
               )}
             </div>
 
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
+              {activeProject && (
+                <Button
+                  onClick={() => setShowNotesModal(true)}
+                  variant="outline"
+                  className="h-8 border-[#DFE1E6] hover:bg-[#F4F5F7] text-[#172B4D] text-xs font-semibold px-3 rounded-[3px] shadow-sm flex items-center space-x-1.5 transition-all"
+                >
+                  <FileText className="w-3.5 h-3.5 text-[#0052CC]" />
+                  <span>Project Notes</span>
+                </Button>
+              )}
+              {activeProject && (
+                <Button
+                  onClick={() => setShowCopilotDrawer(true)}
+                  className="h-8 bg-[#0052CC] hover:bg-[#0747A6] text-white text-xs font-semibold px-3 rounded-[3px] shadow-sm flex items-center space-x-1.5 transition-all"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
+                  <span>AI Copilot</span>
+                </Button>
+              )}
               {activeProject && setSearchQuery && (
                 <div className="relative">
                   <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#5E6C84] z-10 pointer-events-none" />
@@ -456,6 +490,19 @@ export default function ProjectLayoutShell({
           onClose={() => setShowUpgradeModal(false)}
           alertMessage={upgradeAlertMessage}
         />
+
+        <AICopilotChatDrawer
+          isOpen={showCopilotDrawer}
+          onClose={() => setShowCopilotDrawer(false)}
+        />
+
+        {activeProject && (
+          <ProjectNotesModal
+            isOpen={showNotesModal}
+            onClose={() => setShowNotesModal(false)}
+            projectId={activeProject.id}
+          />
+        )}
       </div>
     </SidebarProvider>
   );

@@ -43,6 +43,7 @@ const createTaskSchema = z.object({
 
 export default function CreateTaskModal() {
   const {
+    activeProject,
     projectDetails,
     projectMembers,
     fetchProjectDetails,
@@ -52,9 +53,10 @@ export default function CreateTaskModal() {
     createTaskDefaultParentId,
   } = useProject();
 
-  const stages = projectDetails?.stages || [];
-  const issueTypes = projectDetails?.issueTypes || [];
-  const availableParentTasks = projectDetails?.tasks?.filter((t: any) => !t.parentTaskId) || [];
+  const currentProjectId = activeProject?.id || projectDetails?.id;
+  const stages = activeProject?.stages || projectDetails?.stages || [];
+  const issueTypes = activeProject?.issueTypes || projectDetails?.issueTypes || [];
+  const availableParentTasks = (activeProject?.tasks || projectDetails?.tasks || [])?.filter((t: any) => !t.parentTaskId);
 
   const [timeError, setTimeError] = useState<string | null>(null);
 
@@ -136,7 +138,12 @@ export default function CreateTaskModal() {
         estimatedMinutes: calculatedMinutes !== null ? calculatedMinutes : undefined,
       };
 
-      await api.post(`/projects/${projectDetails.id}/tasks`, payload);
+      if (!currentProjectId) {
+        alert("Active project context is missing. Please refresh the page.");
+        return;
+      }
+
+      await api.post(`/projects/${currentProjectId}/tasks`, payload);
       await fetchProjectDetails();
       handleClose();
     } catch (err: any) {
