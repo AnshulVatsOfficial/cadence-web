@@ -180,7 +180,7 @@ export default function BillingPage() {
   return (
     <ProjectProvider>
       <ProjectLayoutShell>
-        <div className="p-6 md:p-8 max-w-7xl mx-auto h-full overflow-y-auto">
+        <div className="p-6 md:p-8 w-full h-full overflow-y-auto">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-[#172B4D] mb-1">Billing & Subscriptions</h1>
           <p className="text-sm text-[#5E6C84]">Manage your current plan, limits, and view past transactions.</p>
