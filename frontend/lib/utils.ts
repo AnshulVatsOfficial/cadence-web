@@ -8,38 +8,48 @@ export function cn(...inputs: ClassValue[]) {
 export function extractPlainText(desc: any): string {
   if (!desc) return "";
 
-  let obj = desc;
+  let text = "";
 
   if (typeof desc === "string") {
     const trimmed = desc.trim();
     if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
       try {
-        obj = JSON.parse(trimmed);
+        const obj = JSON.parse(trimmed);
+        text = collectTextFromProseMirror(obj);
       } catch {
-        return desc;
+        text = desc;
       }
     } else {
-      return desc;
+      text = desc;
     }
+  } else if (typeof desc === "object") {
+    text = collectTextFromProseMirror(desc);
   }
 
-  const collectText = (node: any): string => {
-    if (!node) return "";
-    if (typeof node === "string") return node;
-    if (node.type === "text" && node.text) return node.text;
-    if (Array.isArray(node.content)) {
-      const parts = node.content.map(collectText).filter(Boolean);
-      return parts.join(node.type === "paragraph" ? "\n\n" : " ");
-    }
-    return "";
-  };
+  return cleanHtmlAndEntities(text);
+}
 
-  if (obj && typeof obj === "object") {
-    if (obj.type === "doc" || Array.isArray(obj.content)) {
-      const extracted = collectText(obj);
-      if (extracted.trim()) return extracted.trim();
-    }
+function collectTextFromProseMirror(node: any): string {
+  if (!node) return "";
+  if (typeof node === "string") return node;
+  if (node.type === "text" && node.text) return node.text;
+  if (Array.isArray(node.content)) {
+    const parts = node.content.map(collectTextFromProseMirror).filter(Boolean);
+    return parts.join(node.type === "paragraph" ? "\n\n" : " ");
   }
+  return "";
+}
 
-  return typeof desc === "string" ? desc : "";
+function cleanHtmlAndEntities(str: string): string {
+  if (!str) return "";
+  return str
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
 }
