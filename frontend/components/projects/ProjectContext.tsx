@@ -10,6 +10,7 @@ import React, {
 import { useParams } from "next/navigation";
 import { useAuth } from "@/lib/authContext";
 import { api } from "@/lib/api";
+import { useProjectSocket, OnlineUser } from "@/hooks/useProjectSocket";
 
 interface ProjectContextProps {
   projects: any[];
@@ -22,6 +23,11 @@ interface ProjectContextProps {
   fetchProjects: () => Promise<void>;
   fetchProjectDetails: () => Promise<void>;
   fetchProjectMembers: () => Promise<void>;
+
+  // Real-time WebSockets state
+  onlineUsers: OnlineUser[];
+  isSocketConnected: boolean;
+  sendTypingIndicator: (taskId?: string, isTyping?: boolean) => void;
 
   // Shared Modals triggers
   showCreateModal: boolean;
@@ -123,6 +129,13 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
     }
   }, [projectId, accessToken]);
 
+  // Real-time WebSockets integration for project changes and presence
+  const { onlineUsers, isConnected: isSocketConnected, sendTypingIndicator } = useProjectSocket({
+    projectId,
+    accessToken,
+    onProjectChange: fetchProjectDetails,
+  });
+
   // Fetch project members
   const fetchProjectMembers = useCallback(async () => {
     if (!projectId || !accessToken) return;
@@ -206,6 +219,9 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
         fetchProjects,
         fetchProjectDetails,
         fetchProjectMembers,
+        onlineUsers,
+        isSocketConnected,
+        sendTypingIndicator,
         showCreateModal,
         setShowCreateModal,
         showEditModal,
@@ -241,3 +257,4 @@ export function useProject() {
   }
   return context;
 }
+

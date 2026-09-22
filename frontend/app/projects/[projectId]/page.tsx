@@ -19,6 +19,7 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import CreateTaskModal from "../../../components/projects/tasks/CreateTaskModal";
 import TaskDetailsModal from "../../../components/projects/tasks/TaskDetailsModal";
 import { AIGeneratorModal } from "../../../components/projects/AIGeneratorModal";
+import PresenceAvatars from "../../../components/projects/PresenceAvatars";
 
 const addColumnSchema = z.object({
   name: z
@@ -46,7 +47,7 @@ function getStatusBadgeStyles(status: string) {
 }
 
 function ProjectBoardContent() {
-  const { projectDetails, loadingProjects, profileError, fetchProjectDetails, openCreateTaskModal, searchQuery, setSearchQuery } = useProject();
+  const { projectDetails, loadingProjects, profileError, fetchProjectDetails, openCreateTaskModal, searchQuery, setSearchQuery, onlineUsers } = useProject();
   const [localStages, setLocalStages] = useState<any[]>([]);
   const [localTasks, setLocalTasks] = useState<any[]>([]);
   const [showAddColumn, setShowAddColumn] = useState(false);
@@ -233,7 +234,11 @@ function ProjectBoardContent() {
                 {topLevelTasksCount} ({localTasks.length} total)
               </strong>
             </span>
+
+            {/* Active Online Collaborator Avatars */}
+            <PresenceAvatars onlineUsers={onlineUsers} />
           </div>
+
 
           <div className="flex items-center space-x-3">
             {isAdminOrOwner && (
