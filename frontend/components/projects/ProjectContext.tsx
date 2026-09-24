@@ -114,7 +114,7 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
   const fetchProjectDetails = useCallback(async () => {
     if (!projectId || !accessToken) return;
     try {
-      const res = await api.get(`/projects/${projectId}`);
+      const res = await api.get(`/projects/${projectId}?t=${Date.now()}`);
       setProjectDetails(res.data);
       setActiveProject((prev: any) => (prev ? { ...prev, ...res.data } : res.data));
 
@@ -140,7 +140,7 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
   const fetchProjectMembers = useCallback(async () => {
     if (!projectId || !accessToken) return;
     try {
-      const res = await api.get(`/projects/${projectId}/members`);
+      const res = await api.get(`/projects/${projectId}/members?t=${Date.now()}`);
       setProjectMembers(res.data);
     } catch (err) {
       console.error("Error fetching project members:", err);

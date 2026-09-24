@@ -66,8 +66,23 @@ function LoginPageContent() {
       await login(data.email, data.password);
       router.push(returnTo);
     } catch (err: any) {
-      const msg =
-        err?.response?.data?.error || err?.message || "Login failed. Please check your credentials.";
+      let msg = "Login failed. Please check your credentials.";
+      
+      const responseData = err?.response?.data;
+      if (responseData) {
+        if (typeof responseData.message === "string") {
+          msg = responseData.message;
+        } else if (Array.isArray(responseData.message)) {
+          msg = responseData.message.join(", ");
+        } else if (typeof responseData.error === "string") {
+          msg = responseData.error;
+        } else if (typeof responseData.error === "object") {
+          msg = responseData.error.message || JSON.stringify(responseData.error);
+        }
+      } else if (err?.message) {
+        msg = err.message;
+      }
+
       setError(msg);
     }
   };
@@ -111,10 +126,21 @@ function LoginPageContent() {
                   await loginWithGoogle(idToken);
                   router.push("/projects");
                 } catch (err: any) {
-                  const msg =
-                    err?.response?.data?.error ||
-                    err?.message ||
-                    "Google login failed.";
+                  let msg = "Google login failed.";
+                  const responseData = err?.response?.data;
+                  if (responseData) {
+                    if (typeof responseData.message === "string") {
+                      msg = responseData.message;
+                    } else if (Array.isArray(responseData.message)) {
+                      msg = responseData.message.join(", ");
+                    } else if (typeof responseData.error === "string") {
+                      msg = responseData.error;
+                    } else if (typeof responseData.error === "object") {
+                      msg = responseData.error.message || JSON.stringify(responseData.error);
+                    }
+                  } else if (err?.message) {
+                    msg = err.message;
+                  }
                   setError(msg);
                 } finally {
                   setGoogleLoading(false);

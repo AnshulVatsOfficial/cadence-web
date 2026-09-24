@@ -20,6 +20,7 @@ import CreateTaskModal from "../../../components/projects/tasks/CreateTaskModal"
 import TaskDetailsModal from "../../../components/projects/tasks/TaskDetailsModal";
 import { AIGeneratorModal } from "../../../components/projects/AIGeneratorModal";
 import PresenceAvatars from "../../../components/projects/PresenceAvatars";
+import ProjectMembersListModal from "../../../components/projects/ProjectMembersListModal";
 
 const addColumnSchema = z.object({
   name: z
@@ -47,12 +48,13 @@ function getStatusBadgeStyles(status: string) {
 }
 
 function ProjectBoardContent() {
-  const { projectDetails, loadingProjects, profileError, fetchProjectDetails, openCreateTaskModal, searchQuery, setSearchQuery, onlineUsers } = useProject();
+  const { projectDetails, loadingProjects, profileError, fetchProjectDetails, openCreateTaskModal, searchQuery, setSearchQuery, onlineUsers, projectMembers } = useProject();
   const [localStages, setLocalStages] = useState<any[]>([]);
   const [localTasks, setLocalTasks] = useState<any[]>([]);
   const [showAddColumn, setShowAddColumn] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showAIModal, setShowAIModal] = useState(false);
+  const [showMembersModal, setShowMembersModal] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   const userRole = projectDetails?.role;
@@ -235,6 +237,40 @@ function ProjectBoardContent() {
               </strong>
             </span>
 
+            <div 
+              className="flex items-center space-x-2 cursor-pointer hover:bg-gray-100 px-2 py-1 rounded transition-colors"
+              onClick={() => setShowMembersModal(true)}
+            >
+              <span className="text-xs text-[#5E6C84]">
+                Members:{" "}
+                <strong className="text-[#172B4D]">
+                  {projectMembers?.length || 0}
+                </strong>
+              </span>
+              {projectMembers && projectMembers.length > 0 && (
+                <div className="flex -space-x-2 overflow-hidden items-center">
+                  {projectMembers.slice(0, 3).map((member, idx) => {
+                    const name = member.name || member.email || "??";
+                    const initials = name.slice(0, 2).toUpperCase();
+                    const bgColors = ["bg-blue-600", "bg-purple-600", "bg-emerald-600"];
+                    return (
+                      <div
+                        key={member.userId || idx}
+                        className={`inline-flex items-center justify-center w-6 h-6 text-[10px] font-bold text-white ${bgColors[idx % bgColors.length]} rounded-full ring-2 ring-white`}
+                      >
+                        {initials}
+                      </div>
+                    );
+                  })}
+                  {projectMembers.length > 3 && (
+                    <div className="inline-flex items-center justify-center w-6 h-6 text-[10px] font-bold text-[#5E6C84] bg-gray-200 rounded-full ring-2 ring-white">
+                      +{projectMembers.length - 3}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             {/* Active Online Collaborator Avatars */}
             <PresenceAvatars onlineUsers={onlineUsers} />
           </div>
@@ -401,6 +437,12 @@ function ProjectBoardContent() {
           projects={projectDetails ? [projectDetails] : []}
           initialProjectId={projectDetails?.id}
           isProjectFixed={true}
+        />
+
+        <ProjectMembersListModal
+          isOpen={showMembersModal}
+          onClose={() => setShowMembersModal(false)}
+          members={projectMembers || []}
         />
       </div>
   );
