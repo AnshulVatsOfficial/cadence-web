@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { OnlineUser } from "@/hooks/useProjectSocket";
 
 interface PresenceAvatarsProps {
@@ -47,7 +46,7 @@ export default function PresenceAvatars({ onlineUsers }: PresenceAvatarsProps) {
               className="relative group cursor-pointer"
             >
               <div
-                className={`inline-flex items-center justify-center w-7 h-7 text-[11px] font-bold text-white ${bgColor} rounded-full ring-2 ring-white select-none transition-transform group-hover:scale-110`}
+                className={`inline-flex items-center justify-center w-7 h-7 text-[11px] font-bold text-white ${bgColor} rounded-full ring-2 ring-white select-none transition-transform`}
               >
                 {initials}
               </div>

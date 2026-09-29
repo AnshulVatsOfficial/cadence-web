@@ -324,13 +324,14 @@ function ProjectBoardContent() {
                   >
                     {localStages.map((stage, index) => {
                       const stageTasks = localTasks.filter((t) => {
+                        const isTopLevel = !t.parentTaskId;
                         const matchesStage = t.stageId === stage.id;
                         const matchesSearch = searchQuery
                           ? t.title
                               .toLowerCase()
                               .includes(searchQuery.toLowerCase())
                           : true;
-                        return matchesStage && matchesSearch;
+                        return isTopLevel && matchesStage && matchesSearch;
                       });
 
                       return (

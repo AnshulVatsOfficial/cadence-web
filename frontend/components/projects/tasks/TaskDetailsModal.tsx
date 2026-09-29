@@ -148,6 +148,7 @@ export default function TaskDetailsModal() {
 
       await api.patch(`/projects/${projectDetails.id}/tasks/${selectedTask.id}`, payload);
       await fetchProjectDetails();
+      handleClose();
     } catch (err: any) {
       console.error("Failed to update task:", err);
       alert(err?.response?.data?.error || "Error saving task changes.");

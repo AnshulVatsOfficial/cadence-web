@@ -26,6 +26,7 @@ export interface NotificationItem {
   title: string;
   body?: string | null;
   entityId?: string | null;
+  projectId?: string | null;
   isRead: boolean;
   createdAt: string;
 }
@@ -106,7 +107,11 @@ export function NotificationCenter() {
     }
     setIsOpen(false);
     if (item.entityId) {
-      router.push(`/projects?task=${item.entityId}`);
+      if (item.projectId) {
+        router.push(`/projects/${item.projectId}?taskId=${item.entityId}`);
+      } else {
+        router.push(`/projects?taskId=${item.entityId}`);
+      }
     }
   };
 

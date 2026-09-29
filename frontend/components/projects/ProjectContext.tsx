@@ -7,7 +7,7 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/authContext";
 import { api } from "@/lib/api";
 import { useProjectSocket, OnlineUser } from "@/hooks/useProjectSocket";
@@ -58,6 +58,45 @@ interface ProjectContextProps {
 const ProjectContext = createContext<ProjectContextProps | undefined>(
   undefined,
 );
+
+function TaskIdDeepLinkHandler({
+  tasks,
+  onOpenTask,
+}: {
+  tasks: any[] | undefined;
+  onOpenTask: (task: any) => void;
+}) {
+  const searchParams = useSearchParams();
+  const taskIdParam = searchParams?.get("taskId");
+
+  useEffect(() => {
+    if (!tasks || !taskIdParam) return;
+
+    let taskToOpen = tasks.find(
+      (t: any) => t.id === taskIdParam || t.issueKey === taskIdParam,
+    );
+
+    if (!taskToOpen) {
+      for (const mainTask of tasks) {
+        if (mainTask.subtasks && Array.isArray(mainTask.subtasks)) {
+          const foundSubtask = mainTask.subtasks.find(
+            (st: any) => st.id === taskIdParam || st.issueKey === taskIdParam,
+          );
+          if (foundSubtask) {
+            taskToOpen = foundSubtask;
+            break;
+          }
+        }
+      }
+    }
+
+    if (taskToOpen) {
+      onOpenTask(taskToOpen);
+    }
+  }, [tasks, taskIdParam, onOpenTask]);
+
+  return null;
+}
 
 export function ProjectProvider({ children }: { children: React.ReactNode }) {
   const { user, accessToken, isLoading: authLoading } = useAuth();
@@ -187,25 +226,6 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
     }
   }, [projectId, backendDbId, accessToken]);
 
-  const hasOpenedFromUrl = React.useRef(false);
-
-  // Handle URL taskId deep-linking
-  useEffect(() => {
-    if (projectDetails?.tasks && !hasOpenedFromUrl.current) {
-      const urlParams = new URLSearchParams(window.location.search);
-      const taskIdParam = urlParams.get("taskId");
-      if (taskIdParam) {
-        const taskToOpen = projectDetails.tasks.find((t: any) => t.id === taskIdParam);
-        if (taskToOpen) {
-          setSelectedTask(taskToOpen);
-          hasOpenedFromUrl.current = true;
-        }
-      } else {
-        hasOpenedFromUrl.current = true; // No taskId in URL, so don't try again
-      }
-    }
-  }, [projectDetails?.tasks]);
-
   return (
     <ProjectContext.Provider
       value={{
@@ -245,6 +265,12 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
         setSearchQuery,
       }}
     >
+      <React.Suspense fallback={null}>
+        <TaskIdDeepLinkHandler
+          tasks={projectDetails?.tasks}
+          onOpenTask={setSelectedTask}
+        />
+      </React.Suspense>
       {children}
     </ProjectContext.Provider>
   );
