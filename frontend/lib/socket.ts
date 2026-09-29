@@ -8,13 +8,8 @@ export function getSocket(tokenOverride?: string | null): Socket {
 
   const getSocketUrl = () => {
     if (process.env.NEXT_PUBLIC_SOCKET_URL) return process.env.NEXT_PUBLIC_SOCKET_URL;
-    if (process.env.NEXT_PUBLIC_BACKEND_URL) return process.env.NEXT_PUBLIC_BACKEND_URL;
-    if (typeof window !== "undefined") {
-      const hostname = window.location.hostname;
-      // Default to backend port 4000 (Express) or 4001 (NestJS)
-      return `http://${hostname}:4000`;
-    }
-    return "http://localhost:4000";
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+    return backendUrl.replace(/\/api\/?$/, "");
   };
 
   const socketUrl = getSocketUrl();

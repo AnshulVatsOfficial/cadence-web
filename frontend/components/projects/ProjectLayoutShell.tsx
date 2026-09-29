@@ -27,6 +27,7 @@ import EditProjectModal from "./EditProjectModal";
 import AICopilotChatDrawer from "./AICopilotChatDrawer";
 import CustomAlertDialog from "../shared/CustomAlertDialog";
 import InformationBanner from "../shared/InformationBanner";
+import { NotificationCenter } from "../shared/NotificationCenter";
 import SubscriptionUpgradeFlow from "../billing/SubscriptionUpgradeFlow";
 import { Skeleton } from "../ui/skeleton";
 import { Button } from "../ui/button";
@@ -409,6 +410,7 @@ export default function ProjectLayoutShell({
                   />
                 </div>
               )}
+              <NotificationCenter />
               <UserDropdown />
             </div>
           </header>

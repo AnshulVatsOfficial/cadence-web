@@ -253,7 +253,7 @@ export default function AICopilotChatDrawer({
       let userFriendlyText = "I encountered an issue completing your request. Please ensure your backend server is running and try again.";
 
       if (error?.response?.status === 404) {
-        userFriendlyText = "Unable to connect to the backend AI service. Please verify the backend server is running on port 4000.";
+        userFriendlyText = "Unable to connect to the backend AI service. Please verify the backend server is running on port 8080.";
       } else if (error?.response?.status === 500) {
         userFriendlyText = "The AI service is currently unavailable or your API key needs configuration. Please check your backend settings.";
       }

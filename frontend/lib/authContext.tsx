@@ -130,7 +130,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const clientId = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID || "mock_github_client_id";
     const redirectUri =
       process.env.NEXT_PUBLIC_GITHUB_REDIRECT_URI ||
-      "http://localhost:4000/api/auth/github/callback";
+      "http://localhost:8080/api/auth/github/callback";
     const url = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
       redirectUri,
     )}&scope=user:email`;
