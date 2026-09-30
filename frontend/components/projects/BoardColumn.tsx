@@ -213,7 +213,7 @@ export default function BoardColumn({
           <Button
             variant="ghost"
             onClick={() => openCreateTaskModal({ stageId: stage.id })}
-            className="w-full flex items-center justify-start space-x-1.5 text-xs text-[#5E6C84] hover:text-[#172B4D] hover:bg-[#EBECF0] h-8 py-1 px-2 rounded-[3px] transition-colors text-left font-normal"
+            className="w-auto inline-flex items-center justify-start space-x-1.5 text-xs text-[#5E6C84] hover:text-[#172B4D] hover:bg-[#EBECF0] h-8 py-1 px-2.5 rounded-[3px] transition-colors font-normal"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Create issue</span>

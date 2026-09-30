@@ -203,7 +203,7 @@ export function NotificationCenter() {
                   key={item.id}
                   onClick={() => handleNotificationClick(item)}
                   className={`flex items-start justify-between gap-3 p-3 transition-colors cursor-pointer hover:bg-accent/40 ${
-                    item.isRead ? "bg-background" : "bg-primary/5 font-medium"
+                    item.isRead ? "bg-background font-normal" : "bg-blue-50/70 font-medium"
                   }`}
                 >
                   <div className="flex-1 space-y-1 text-xs">
@@ -217,16 +217,10 @@ export function NotificationCenter() {
                     </span>
                   </div>
 
-                  {!item.isRead && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => handleMarkAsRead(item.id, e)}
-                      className="h-6 w-6 text-muted-foreground hover:text-foreground shrink-0 mt-0.5"
-                      title="Mark as read"
-                    >
-                      <Check className="h-3.5 w-3.5" />
-                    </Button>
+                  {item.isRead && (
+                    <div className="shrink-0 mt-0.5 text-blue-600/80" title="Read">
+                      <Check className="h-4 w-4" />
+                    </div>
                   )}
                 </div>
               ))}
