@@ -5,7 +5,22 @@ import { useAuth } from "@/lib/authContext";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Plus, Trash2, Copy, Check } from "lucide-react";
+import { 
+  Loader2, 
+  Plus, 
+  Trash2, 
+  Copy, 
+  Check, 
+  Key, 
+  Sparkles, 
+  Terminal, 
+  Cpu, 
+  ShieldAlert, 
+  HelpCircle,
+  ExternalLink,
+  Code2,
+  CheckCircle2
+} from "lucide-react";
 
 interface ApiKey {
   id: string;
@@ -21,27 +36,10 @@ export default function ApiKeysPage() {
   const [createdKey, setCreatedKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [activeTab, setActiveTab] = useState<'claude' | 'cursor'>('claude');
-  const [copiedConfig, setCopiedConfig] = useState(false);
-  const [copiedCmd, setCopiedCmd] = useState(false);
-
-  const configJson = `{
-  "mcpServers": {
-    "cadence": {
-      "command": "npx",
-      "args": ["-y", "cadence-mcp"],
-      "env": {
-        "CADENCE_API_KEY": "YOUR_KEY_HERE"
-      }
-    }
-  }
-}`;
-
-  const handleCopyConfig = () => {
-    navigator.clipboard.writeText(configJson);
-    setCopiedConfig(true);
-    setTimeout(() => setCopiedConfig(false), 2000);
-  };
+  
+  // MCP Guide state
+  const [activeTab, setActiveTab] = useState<'claude' | 'cursor' | 'cli'>('claude');
+  const [copiedSnippet, setCopiedSnippet] = useState(false);
 
   useEffect(() => {
     fetchKeys();
@@ -87,7 +85,7 @@ export default function ApiKeysPage() {
     }
   };
 
-  const handleCopy = () => {
+  const handleCopyNewKey = () => {
     if (createdKey) {
       navigator.clipboard.writeText(createdKey);
       setCopied(true);
@@ -95,203 +93,359 @@ export default function ApiKeysPage() {
     }
   };
 
+  const activeKeyValue = createdKey || "YOUR_CADENCE_API_KEY";
+
+  const getTabSnippet = () => {
+    switch (activeTab) {
+      case 'claude':
+        return `{
+  "mcpServers": {
+    "cadence": {
+      "command": "npx",
+      "args": ["-y", "cadence-mcp"],
+      "env": {
+        "CADENCE_API_KEY": "${activeKeyValue}"
+      }
+    }
+  }
+}`;
+      case 'cursor':
+        return `// Add under Cursor Settings > Features > MCP Servers > "+ Add New MCP Server"
+// Name: Cadence
+// Type: command
+// Command:
+
+env CADENCE_API_KEY="${activeKeyValue}" npx -y cadence-mcp`;
+      case 'cli':
+        return `# Quick test via terminal / npx
+CADENCE_API_KEY="${activeKeyValue}" npx -y cadence-mcp`;
+    }
+  };
+
+  const handleCopySnippet = () => {
+    navigator.clipboard.writeText(getTabSnippet());
+    setCopiedSnippet(true);
+    setTimeout(() => setCopiedSnippet(false), 2000);
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-brand" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#0052CC]" />
       </div>
     );
   }
 
   return (
-    <div className="p-6 flex flex-col lg:flex-row justify-between gap-12 flex-1 w-full h-full overflow-y-auto">
-      {/* Left Column: Key Management */}
-      <div className="flex-1 space-y-8 max-w-4xl">
-        <div>
-          <h1 className="text-2xl font-bold text-[#172B4D]">API Keys (Personal Access Tokens)</h1>
-          <p className="mt-2 text-[#5E6C84]">
-            Manage your personal access tokens. These tokens can be used to authenticate with the Cadence API and MCP Server.
-          </p>
+    <div className="flex-grow w-full px-4 md:px-8 py-10 flex flex-col bg-[#FAFBFC] overflow-y-auto h-full">
+      {/* Page Header */}
+      <div className="w-full mb-8 border-b border-[#DFE1E6] pb-6">
+        <div className="flex items-center space-x-2 text-xs font-semibold uppercase tracking-wider text-[#5E6C84] mb-2">
+          <span>Settings</span>
+          <span>/</span>
+          <span>Security & API</span>
         </div>
-
-        {createdKey && (
-          <div className="bg-green-50 border border-green-200 p-4 rounded-md">
-            <h3 className="text-green-800 font-semibold">New API Key Created</h3>
-            <p className="text-green-700 text-sm mt-1 mb-3">
-              Please copy this key now. For your security, you won't be able to see it again!
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold text-[#172B4D] tracking-tight flex items-center gap-2">
+              <Key className="w-6 h-6 text-[#0052CC]" />
+              API Keys & Personal Access Tokens
+            </h1>
+            <p className="mt-1 text-sm text-[#5E6C84]">
+              Manage API tokens to authenticate with Cadence REST APIs and connect AI assistants via Model Context Protocol (MCP).
             </p>
-            <div className="flex items-center space-x-2">
-              <code className="flex-1 bg-white p-2 rounded border border-green-100 font-mono text-sm break-all">
-                {createdKey}
-              </code>
-              <Button onClick={handleCopy} variant="outline" className="shrink-0 border-green-200 hover:bg-green-100">
-                {copied ? <Check className="w-4 h-4 mr-2 text-green-600" /> : <Copy className="w-4 h-4 mr-2" />}
-                {copied ? "Copied" : "Copy"}
-              </Button>
-            </div>
-            <div className="mt-4 flex justify-end">
-              <Button variant="ghost" onClick={() => setCreatedKey(null)} className="text-green-700">
-                I have saved it
-              </Button>
-            </div>
-          </div>
-        )}
-
-        <div className="bg-white border border-[#DFE1E6] rounded-[4px] shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-[#172B4D] mb-4">Create New Key</h2>
-          <form onSubmit={handleCreateKey} className="flex gap-4 items-end">
-            <div className="flex-1">
-              <label htmlFor="keyName" className="block text-sm font-medium text-[#172B4D] mb-1">
-                Key Name
-              </label>
-              <Input
-                id="keyName"
-                placeholder="e.g. Cursor MCP Integration"
-                value={newKeyName}
-                onChange={(e) => setNewKeyName(e.target.value)}
-                disabled={isSubmitting}
-                className="bg-white border-[#DFE1E6] rounded-[3px] focus-visible:ring-[#0052CC]"
-              />
-            </div>
-            <Button type="submit" disabled={!newKeyName.trim() || isSubmitting} className="shrink-0 bg-[#0052CC] hover:bg-[#0747A6] rounded-[3px] text-white">
-              {isSubmitting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
-              Generate Key
-            </Button>
-          </form>
-        </div>
-
-        <div className="bg-white border border-[#DFE1E6] rounded-[4px] shadow-sm">
-          <div className="px-6 py-4 border-b border-[#DFE1E6]">
-            <h2 className="text-lg font-semibold text-[#172B4D]">Active Keys</h2>
-          </div>
-          
-          <div className="divide-y divide-[#DFE1E6]">
-            {keys.length === 0 ? (
-              <div className="p-6 text-center text-[#5E6C84]">
-                You haven't generated any API keys yet.
-              </div>
-            ) : (
-              keys.map((key) => (
-                <div key={key.id} className="p-6 flex items-center justify-between hover:bg-[#FAFBFC]">
-                  <div>
-                    <h3 className="font-semibold text-[#172B4D]">{key.name}</h3>
-                    <p className="text-sm text-[#5E6C84] mt-1">
-                      Created on {new Date(key.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="text-[#5E6C84] hover:text-[#172B4D] rounded-[3px]"
-                      onClick={() => {
-                        // We copy a placeholder because real keys are hashed in DB
-                        navigator.clipboard.writeText(`cadence_ak_... [Hidden for Security]`);
-                        alert("For security reasons, API keys are hashed and cannot be viewed again. Please revoke and create a new one if you lost it!");
-                      }}
-                    >
-                      <Copy className="w-4 h-4 mr-2" />
-                      Copy
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50 rounded-[3px]"
-                      onClick={() => handleRevokeKey(key.id)}
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Revoke
-                    </Button>
-                  </div>
-                </div>
-              ))
-            )}
           </div>
         </div>
       </div>
 
-      {/* Right Column: Guide Sidebar */}
-      <div className="w-full lg:w-[450px] shrink-0">
-        <div className="bg-[#DEEBFF] border border-[#B3D4FF] rounded-[4px] p-6 sticky top-6 shadow-sm">
-          <h3 className="font-bold text-[#172B4D] text-lg lg:text-xl mb-6">Connecting AI Services</h3>
+      <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Left Column: Key Management (7 cols on lg) */}
+        <div className="lg:col-span-7 space-y-6">
           
-          <div className="space-y-6">
-            
-            {/* Step 1: Explain MCP */}
-            <div>
-              <h4 className="font-semibold text-[#172B4D] text-sm lg:text-base mb-2">1. What is MCP?</h4>
-              <p className="text-sm text-[#5E6C84] leading-relaxed">
-                Cadence supports the universal <strong>Model Context Protocol (MCP)</strong>. This allows you to securely connect any modern AI Code Editor (like Cursor or Windsurf) or AI Assistant (like Claude Desktop) directly to your workspace. The AI can read your projects and automate tasks for you!
-              </p>
-            </div>
-
-            {/* Step 2: How to Connect */}
-            <div className="border-t border-[#B3D4FF] pt-5">
-              <h4 className="font-semibold text-[#172B4D] text-sm lg:text-base mb-2">2. How to Connect</h4>
-              <p className="text-sm text-[#5E6C84] leading-relaxed">
-                First, generate and copy your API Key from the left panel. Depending on your AI tool, you can connect it by editing its JSON config file or by using its built-in Settings UI.
-              </p>
-            </div>
-
-            {/* Step 3: JSON Config */}
-            <div className="border-t border-[#B3D4FF] pt-5">
-              <h4 className="font-semibold text-[#172B4D] text-sm lg:text-base mb-2">3. Method A: JSON Config</h4>
-              <p className="text-sm text-[#5E6C84] mb-3 leading-relaxed">
-                For tools like Claude Desktop (<strong>Settings &gt; Developer &gt; Edit Config</strong>) or Cursor (via <code>~/.cursor/mcp.json</code>). Paste the block below into your tool's MCP configuration file. <em>Don't forget to replace YOUR_KEY_HERE!</em>
-              </p>
-              <div className="bg-[#172B4D] rounded-[4px] p-4 relative shadow-inner group">
-                <Button 
-                  onClick={handleCopyConfig} 
-                  variant="outline" 
-                  size="sm"
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-7 bg-white/10 hover:bg-white/20 border-white/20 text-white"
-                >
-                  {copiedConfig ? <Check className="w-3.5 h-3.5 mr-1.5 text-green-400" /> : <Copy className="w-3.5 h-3.5 mr-1.5" />}
-                  {copiedConfig ? "Copied" : "Copy"}
-                </Button>
-                <pre className="text-sm text-gray-300 font-mono overflow-x-auto whitespace-pre pt-4 pb-2">
-{configJson}
-                </pre>
+          {/* Success Banner when a new key is created */}
+          {createdKey && (
+            <div className="bg-[#E3FCEF] border border-[#ABF5D1] rounded-[4px] p-5 shadow-sm transition-all animate-in fade-in duration-200">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-[#006644] shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <h3 className="text-sm font-semibold text-[#006644]">
+                    API Key Created Successfully
+                  </h3>
+                  <p className="text-xs text-[#006644]/90 mt-1 mb-3">
+                    Copy your key now. For security reasons, <strong>you won't be able to view it again</strong> after leaving this page!
+                  </p>
+                  <div className="flex items-center gap-2 bg-white/90 p-2 rounded-[3px] border border-[#ABF5D1]">
+                    <code className="flex-1 font-mono text-xs text-[#172B4D] break-all select-all px-1">
+                      {createdKey}
+                    </code>
+                    <Button 
+                      onClick={handleCopyNewKey} 
+                      size="sm" 
+                      className="shrink-0 bg-[#006644] hover:bg-[#004D33] text-white h-8 text-xs font-medium rounded-[3px]"
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 mr-1.5" />
+                          Copied
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5 mr-1.5" />
+                          Copy Token
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  <div className="mt-3 flex justify-end">
+                    <button 
+                      onClick={() => setCreatedKey(null)} 
+                      className="text-xs font-semibold text-[#006644] hover:underline"
+                    >
+                      I have stored it safely
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
+          )}
 
-            {/* Step 4: UI Command */}
-            <div className="border-t border-[#B3D4FF] pt-5">
-              <h4 className="font-semibold text-[#172B4D] text-sm lg:text-base mb-2">4. Method B: Settings UI</h4>
-              <p className="text-sm text-[#5E6C84] mb-3 leading-relaxed">
-                If your AI Editor has an MCP Settings UI (e.g., Cursor: <strong>Settings &gt; Features &gt; MCP Servers</strong>), click <strong>+ Add New MCP Server</strong>. Choose type <code>command</code>, name it <code>Cadence</code>, and paste this exact command (replace YOUR_KEY_HERE):
-              </p>
-              <div className="bg-[#172B4D] rounded-[4px] p-4 relative shadow-inner group">
-                <Button 
-                  onClick={() => {
-                    navigator.clipboard.writeText('env CADENCE_API_KEY="YOUR_KEY_HERE" npx -y cadence-mcp');
-                    setCopiedCmd(true);
-                    setTimeout(() => setCopiedCmd(false), 2000);
-                  }} 
-                  variant="outline" 
-                  size="sm"
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-7 bg-white/10 hover:bg-white/20 border-white/20 text-white"
-                >
-                  {copiedCmd ? <Check className="w-3.5 h-3.5 mr-1.5 text-green-400" /> : <Copy className="w-3.5 h-3.5 mr-1.5" />}
-                  {copiedCmd ? "Copied" : "Copy"}
-                </Button>
-                <pre className="text-sm text-gray-300 font-mono overflow-x-auto whitespace-pre pt-4 pb-2">
-env CADENCE_API_KEY="YOUR_KEY_HERE" npx -y cadence-mcp
-                </pre>
+          {/* Create Key Card */}
+          <div className="bg-white border border-[#DFE1E6] rounded-[4px] shadow-sm p-6">
+            <h2 className="text-base font-semibold text-[#172B4D] mb-1">
+              Create New Access Token
+            </h2>
+            <p className="text-xs text-[#5E6C84] mb-4">
+              Give your token a descriptive name (e.g. <em>Cursor MCP Server</em> or <em>CI/CD Integration</em>).
+            </p>
+            <form onSubmit={handleCreateKey} className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1">
+                <Input
+                  id="keyName"
+                  placeholder="e.g. Cursor MCP Integration"
+                  value={newKeyName}
+                  onChange={(e) => setNewKeyName(e.target.value)}
+                  disabled={isSubmitting}
+                  className="h-9 bg-white border-[#DFE1E6] text-sm text-[#172B4D] placeholder:text-[#6B778C] rounded-[3px] focus-visible:ring-2 focus-visible:ring-[#4C9AFF]"
+                />
               </div>
+              <Button 
+                type="submit" 
+                disabled={!newKeyName.trim() || isSubmitting} 
+                className="h-9 shrink-0 bg-[#0052CC] hover:bg-[#0747A6] text-white font-medium text-sm rounded-[3px] px-4"
+              >
+                {isSubmitting ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Plus className="w-4 h-4 mr-2" />
+                )}
+                Generate Token
+              </Button>
+            </form>
+          </div>
+
+          {/* Active Keys Table */}
+          <div className="bg-white border border-[#DFE1E6] rounded-[4px] shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-[#DFE1E6] flex items-center justify-between bg-[#FAFBFC]">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-[#5E6C84]">
+                Active Tokens ({keys.length})
+              </h2>
             </div>
 
-            {/* Step 5: Start Chatting */}
-            <div className="border-t border-[#B3D4FF] pt-5">
-              <h4 className="font-semibold text-[#172B4D] text-sm lg:text-base mb-2">5. Start Chatting!</h4>
-              <p className="text-sm text-[#5E6C84] mb-3 leading-relaxed">
-                Once connected, the AI will be able to read and manage your Cadence projects directly in real-time. Try opening your AI chat (e.g., Cmd+L in Cursor) and asking things like:
+            {keys.length === 0 ? (
+              <div className="p-12 text-center">
+                <Key className="w-10 h-10 text-[#C1C7D0] mx-auto mb-3" />
+                <p className="text-sm font-medium text-[#172B4D]">No active API keys</p>
+                <p className="text-xs text-[#5E6C84] mt-1">
+                  Generate a key above to authenticate your MCP server or custom scripts.
+                </p>
+              </div>
+            ) : (
+              <div className="divide-y divide-[#DFE1E6]">
+                {keys.map((key) => (
+                  <div 
+                    key={key.id} 
+                    className="px-6 py-4 flex items-center justify-between hover:bg-[#FAFBFC] transition-colors"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-sm text-[#172B4D]">
+                          {key.name}
+                        </span>
+                        <span className="bg-[#EAE6FF] text-[#403294] text-[10px] font-bold px-2 py-0.5 rounded-[3px]">
+                          ACTIVE
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#5E6C84]">
+                        Created {new Date(key.createdAt).toLocaleDateString(undefined, {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        className="h-8 text-xs font-medium text-[#DE350B] hover:text-[#BF2600] hover:bg-[#FFEBE6] rounded-[3px] px-3"
+                        onClick={() => handleRevokeKey(key.id)}
+                      >
+                        <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+                        Revoke
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right Column: Refined Jira MCP Connect Guide (5 cols on lg) */}
+        <div className="lg:col-span-5">
+          <div className="bg-white border border-[#DFE1E6] rounded-[4px] shadow-sm overflow-hidden">
+            {/* Guide Header */}
+            <div className="p-6 border-b border-[#DFE1E6] bg-gradient-to-b from-[#FAFBFC] to-white">
+              <div className="flex items-center gap-2 text-[#0052CC] mb-2">
+                <Cpu className="w-5 h-5" />
+                <span className="text-xs font-bold uppercase tracking-wider">AI Integration</span>
+              </div>
+              <h2 className="text-lg font-semibold text-[#172B4D]">
+                Connect AI Tools (MCP)
+              </h2>
+              <p className="text-xs text-[#5E6C84] mt-1 leading-relaxed">
+                Cadence implements the <strong>Model Context Protocol (MCP)</strong>. Connect your AI coding assistant (Cursor, Claude, Windsurf) directly to your tasks & workspace.
               </p>
-              <ul className="list-disc pl-5 space-y-2 text-sm text-[#172B4D] italic">
-                <li>"What are my active projects in Cadence?"</li>
-                <li>"Create a new task in Cadence for the checkout bug."</li>
-                <li>"List all tasks assigned to me."</li>
-              </ul>
+            </div>
+
+            {/* Guide Body */}
+            <div className="p-6 space-y-6">
+              {/* Tool Selector Tabs */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#5E6C84] mb-2">
+                  Select Your Environment
+                </label>
+                <div className="grid grid-cols-3 gap-1 bg-[#F4F5F7] p-1 rounded-[4px] border border-[#DFE1E6]">
+                  <button
+                    onClick={() => setActiveTab('claude')}
+                    className={`py-1.5 px-3 text-xs font-semibold rounded-[3px] transition-all ${
+                      activeTab === 'claude'
+                        ? 'bg-white text-[#0052CC] shadow-sm'
+                        : 'text-[#5E6C84] hover:text-[#172B4D]'
+                    }`}
+                  >
+                    Claude Desktop
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('cursor')}
+                    className={`py-1.5 px-3 text-xs font-semibold rounded-[3px] transition-all ${
+                      activeTab === 'cursor'
+                        ? 'bg-white text-[#0052CC] shadow-sm'
+                        : 'text-[#5E6C84] hover:text-[#172B4D]'
+                    }`}
+                  >
+                    Cursor IDE
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('cli')}
+                    className={`py-1.5 px-3 text-xs font-semibold rounded-[3px] transition-all ${
+                      activeTab === 'cli'
+                        ? 'bg-white text-[#0052CC] shadow-sm'
+                        : 'text-[#5E6C84] hover:text-[#172B4D]'
+                    }`}
+                  >
+                    Windsurf / CLI
+                  </button>
+                </div>
+              </div>
+
+              {/* Step-by-Step Instructions */}
+              <div className="space-y-4 text-xs text-[#172B4D]">
+                {activeTab === 'claude' && (
+                  <ol className="space-y-3 list-decimal list-inside text-[#5E6C84]">
+                    <li>
+                      Open <strong className="text-[#172B4D]">Claude Desktop</strong> &gt; Settings &gt; Developer.
+                    </li>
+                    <li>
+                      Click <strong className="text-[#172B4D]">Edit Config</strong> to open <code>claude_desktop_config.json</code>.
+                    </li>
+                    <li>
+                      Add the snippet below into your <code>mcpServers</code> section:
+                    </li>
+                  </ol>
+                )}
+
+                {activeTab === 'cursor' && (
+                  <ol className="space-y-3 list-decimal list-inside text-[#5E6C84]">
+                    <li>
+                      Open <strong className="text-[#172B4D]">Cursor Settings</strong> &gt; Features &gt; MCP Servers.
+                    </li>
+                    <li>
+                      Click <strong className="text-[#172B4D]">"+ Add New MCP Server"</strong>.
+                    </li>
+                    <li>
+                      Name it <strong className="text-[#172B4D]">Cadence</strong>, set Type to <strong className="text-[#172B4D]">command</strong>, and paste the command snippet below.
+                    </li>
+                  </ol>
+                )}
+
+                {activeTab === 'cli' && (
+                  <ol className="space-y-3 list-decimal list-inside text-[#5E6C84]">
+                    <li>
+                      Execute the MCP server directly using <code>npx</code> or add it to your tool's MCP config.
+                    </li>
+                    <li>
+                      Ensure <code>CADENCE_API_KEY</code> environment variable is exported.
+                    </li>
+                  </ol>
+                )}
+
+                {/* Snippet Card */}
+                <div className="relative bg-[#091E42] rounded-[4px] border border-[#091E42] p-3 text-slate-200 font-mono text-[11px] group">
+                  <button
+                    onClick={handleCopySnippet}
+                    className="absolute top-2 right-2 flex items-center gap-1 bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded-[3px] text-[10px] font-medium transition-colors"
+                  >
+                    {copiedSnippet ? (
+                      <>
+                        <Check className="w-3 h-3 text-green-400" />
+                        <span>Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3" />
+                        <span>Copy Code</span>
+                      </>
+                    )}
+                  </button>
+                  <pre className="overflow-x-auto whitespace-pre-wrap pr-16 leading-relaxed">
+                    {getTabSnippet()}
+                  </pre>
+                </div>
+              </div>
+
+              {/* Jira Callout Box for Example Prompts */}
+              <div className="bg-[#DEEBFF]/50 border-l-4 border-[#0052CC] p-4 rounded-r-[4px]">
+                <div className="flex items-center gap-2 text-[#0052CC] font-semibold text-xs mb-2">
+                  <Sparkles className="w-4 h-4" />
+                  <span>Try Asking Your AI Assistant</span>
+                </div>
+                <ul className="space-y-1.5 text-xs text-[#172B4D]">
+                  <li className="flex items-start gap-1.5">
+                    <span className="text-[#0052CC] font-bold">•</span>
+                    <span>"List all my active Cadence projects and their status."</span>
+                  </li>
+                  <li className="flex items-start gap-1.5">
+                    <span className="text-[#0052CC] font-bold">•</span>
+                    <span>"Create a bug ticket in Cadence for missing validation."</span>
+                  </li>
+                  <li className="flex items-start gap-1.5">
+                    <span className="text-[#0052CC] font-bold">•</span>
+                    <span>"What tasks are currently assigned to me in Sprint 4?"</span>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
