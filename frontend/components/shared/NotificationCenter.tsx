@@ -187,11 +187,11 @@ export function NotificationCenter() {
 
         <ScrollArea className="h-80">
           {loading && notifications.length === 0 ? (
-            <div className="p-8 text-center text-xs text-muted-foreground">
+            <div className="flex items-center justify-center h-full min-h-[280px] p-8 text-center text-xs text-muted-foreground">
               Loading notifications...
             </div>
           ) : notifications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-8 text-center">
+            <div className="flex flex-col items-center justify-center h-full min-h-[280px] p-8 text-center">
               <Inbox className="h-8 w-8 text-muted-foreground/40 mb-2" />
               <p className="text-sm font-medium text-muted-foreground">No notifications</p>
               <p className="text-xs text-muted-foreground/70">You're all caught up!</p>

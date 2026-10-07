@@ -5,7 +5,12 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "ai:save": "agentdrop save",
+    "ai:resume": "agentdrop load",
+    "ai:status": "agentdrop status",
+    "ai:ui": "agentdrop ui",
+    "postinstall": "agentdrop hook install"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
