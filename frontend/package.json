@@ -10,7 +10,7 @@
     "ai:resume": "agentdrop load",
     "ai:status": "agentdrop status",
     "ai:ui": "agentdrop ui",
-    "postinstall": "agentdrop hook install"
+    "ai:hooks": "agentdrop hook install"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
