@@ -4,7 +4,6 @@ import React, { useState, forwardRef } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 
 export interface PasswordInputProps
   extends React.ComponentProps<typeof Input> {}
@@ -25,21 +24,19 @@ const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
           ref={ref}
           {...props}
         />
-        <Button
+        <button
           type="button"
-          variant="ghost"
-          size="icon-xs"
           tabIndex={-1}
           onClick={() => setShowPassword((prev) => !prev)}
-          className="absolute right-2 top-1/2 -translate-y-1/2 text-[#5E6C84] hover:text-[#172B4D] hover:bg-transparent h-7 w-7 p-1 rounded focus:outline-none"
+          className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center h-7 w-7 text-[#5E6C84] hover:text-[#172B4D] hover:bg-black/5 rounded focus:outline-none transition-colors"
           aria-label={showPassword ? "Hide password" : "Show password"}
         >
           {showPassword ? (
-            <EyeOff className="w-4 h-4" />
+            <EyeOff className="w-4 h-4 shrink-0" />
           ) : (
-            <Eye className="w-4 h-4" />
+            <Eye className="w-4 h-4 shrink-0" />
           )}
-        </Button>
+        </button>
       </div>
     );
   }

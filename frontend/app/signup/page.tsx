@@ -357,17 +357,17 @@ function SignupPageContent() {
                       Password Requirements:
                     </p>
                     {passwordRequirements.map((req, idx) => (
-                      <div key={idx} className="flex items-center space-x-2 text-xs">
+                      <div key={idx} className="flex items-center space-x-2 text-xs transition-colors duration-150">
                         {req.valid ? (
                           <Check className="w-3.5 h-3.5 text-green-600 flex-shrink-0" />
                         ) : (
-                          <X className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                          <X className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
                         )}
                         <span
                           className={
                             req.valid
                               ? "text-green-700 font-medium"
-                              : "text-[#5E6C84]"
+                              : "text-red-600"
                           }
                         >
                           {req.label}
