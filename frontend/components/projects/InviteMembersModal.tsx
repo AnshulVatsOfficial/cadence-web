@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Dialog,
@@ -20,6 +20,8 @@ import {
 } from "../ui/select";
 import { api } from "@/lib/api";
 import { useProject } from "./ProjectContext";
+import { Loader2, Check } from "lucide-react";
+import { toast } from "sonner";
 
 interface InviteMembersModalProps {
   isOpen: boolean;
@@ -27,6 +29,7 @@ interface InviteMembersModalProps {
   projects: any[];
   initialProjectId?: string;
   isProjectFixed?: boolean;
+  onInviteSuccess?: () => void;
 }
 
 export default function InviteMembersModal({
@@ -35,6 +38,7 @@ export default function InviteMembersModal({
   projects,
   initialProjectId,
   isProjectFixed,
+  onInviteSuccess,
 }: InviteMembersModalProps) {
   const [projectId, setProjectId] = useState<string>(initialProjectId || projects[0]?.id || "");
   const [email, setEmail] = useState("");
@@ -45,9 +49,13 @@ export default function InviteMembersModal({
   const router = useRouter();
   const { triggerSubscriptionUpgrade } = useProject();
 
-  // Default project selection when opened
-  React.useEffect(() => {
+  // Reset state and set default project selection when opened
+  useEffect(() => {
     if (isOpen) {
+      setError(null);
+      setSuccess(false);
+      setLoading(false);
+      setEmail("");
       if (initialProjectId) {
         setProjectId(initialProjectId);
       } else if (projects.length > 0 && !projectId) {
@@ -58,10 +66,12 @@ export default function InviteMembersModal({
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading || success) return;
+
     setError(null);
     setSuccess(false);
 
-    if (!projectId || !email) {
+    if (!projectId || !email.trim()) {
       setError("Please select a project and enter an email address.");
       return;
     }
@@ -70,15 +80,22 @@ export default function InviteMembersModal({
       setLoading(true);
       await api.post("/invitations", {
         projectId,
-        email,
+        email: email.trim(),
         role,
       });
+
       setSuccess(true);
+      toast.success(`Invitation sent successfully to ${email.trim()}`);
       setEmail("");
+
+      if (onInviteSuccess) {
+        onInviteSuccess();
+      }
+
       setTimeout(() => {
         onClose();
         setSuccess(false);
-      }, 2000);
+      }, 1200);
     } catch (err: any) {
       console.error(err);
       if (err?.response?.data?.error === "LIMIT_REACHED") {
@@ -86,7 +103,9 @@ export default function InviteMembersModal({
         triggerSubscriptionUpgrade("You've reached the maximum number of team members allowed on your current plan. Please upgrade to invite more members.");
         return;
       }
-      setError(err?.response?.data?.error || err.response?.data?.message || "Failed to send invitation.");
+      const errMsg = err?.response?.data?.error || err.response?.data?.message || "Failed to send invitation.";
+      setError(errMsg);
+      toast.error(errMsg);
     } finally {
       setLoading(false);
     }
@@ -154,7 +173,8 @@ export default function InviteMembersModal({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="colleague@example.com"
-              className="w-full text-sm h-10 border-[#DFE1E6] rounded-[3px] focus-visible:ring-1 focus-visible:ring-[#0052CC]"
+              disabled={loading || success}
+              className="w-full text-sm h-10 border-[#DFE1E6] rounded-[3px] focus-visible:ring-1 focus-visible:ring-[#0052CC] disabled:opacity-60"
               required
             />
           </div>
@@ -163,8 +183,8 @@ export default function InviteMembersModal({
             <Label className="block text-xs font-bold text-[#5E6C84] uppercase tracking-wider">
               Role
             </Label>
-            <Select value={role} onValueChange={setRole}>
-              <SelectTrigger className="w-full text-sm h-10 bg-white border-[#DFE1E6] rounded-[3px] focus-visible:ring-1 focus-visible:ring-[#0052CC]">
+            <Select value={role} onValueChange={setRole} disabled={loading || success}>
+              <SelectTrigger className="w-full text-sm h-10 bg-white border-[#DFE1E6] rounded-[3px] focus-visible:ring-1 focus-visible:ring-[#0052CC] disabled:opacity-60">
                 <SelectValue placeholder="Select role" />
               </SelectTrigger>
               <SelectContent className="bg-white border-[#DFE1E6]">
@@ -181,7 +201,7 @@ export default function InviteMembersModal({
             </Select>
           </div>
 
-          <DialogFooter className="mt-6">
+          <DialogFooter className="mt-6 flex items-center justify-end space-x-2">
             <Button
               type="button"
               variant="outline"
@@ -193,10 +213,18 @@ export default function InviteMembersModal({
             </Button>
             <Button
               type="submit"
-              disabled={loading || projects.length === 0}
-              className="bg-[#0052CC] hover:bg-[#0747A6] text-white rounded-[3px] h-8 text-xs font-semibold px-4"
+              disabled={loading || success || projects.length === 0}
+              className={`rounded-[3px] h-8 text-xs font-semibold px-4 transition-all duration-150 flex items-center justify-center space-x-1.5 ${
+                success
+                  ? "bg-green-600 hover:bg-green-700 text-white"
+                  : "bg-[#0052CC] hover:bg-[#0747A6] text-white"
+              }`}
             >
-              {loading ? "Sending..." : "Send Invite"}
+              {loading && <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />}
+              {success && <Check className="w-3.5 h-3.5 mr-1" />}
+              <span>
+                {loading ? "Sending..." : success ? "Sent!" : "Send Invite"}
+              </span>
             </Button>
           </DialogFooter>
         </form>
