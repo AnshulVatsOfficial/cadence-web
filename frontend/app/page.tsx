@@ -101,12 +101,14 @@ export default function Home() {
           </div>
 
           {/* Nav Links - Desktop */}
-          <nav className="hidden lg:flex items-center space-x-6 text-xs font-semibold text-[#5E6C84]">
-            <span className="hover:text-[#0052CC] cursor-pointer transition-colors">Features</span>
-            <span className="hover:text-[#0052CC] cursor-pointer transition-colors">Solutions</span>
-            <span className="hover:text-[#0052CC] cursor-pointer transition-colors">Templates</span>
-            <span className="hover:text-[#0052CC] cursor-pointer transition-colors">Pricing</span>
-          </nav>
+          {isLoggedIn && (
+            <nav className="hidden lg:flex items-center space-x-6 text-xs font-semibold text-[#5E6C84]">
+              <span className="hover:text-[#0052CC] cursor-pointer transition-colors">Features</span>
+              <span className="hover:text-[#0052CC] cursor-pointer transition-colors">Solutions</span>
+              <span className="hover:text-[#0052CC] cursor-pointer transition-colors">Templates</span>
+              <span className="hover:text-[#0052CC] cursor-pointer transition-colors">Pricing</span>
+            </nav>
+          )}
         </div>
 
         <div className="flex items-center space-x-4">

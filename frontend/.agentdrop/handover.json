@@ -1,28 +1,28 @@
 {
   "version": "1.0.0",
-  "capsuleId": "d7906b7a-26fa-467e-9ff0-d6fd841389a3",
-  "createdAt": "2026-10-07T11:04:54.947Z",
+  "capsuleId": "f346c434-b86c-4d83-b840-0c9d1b3b9acd",
+  "createdAt": "2026-10-30T07:00:34.627Z",
   "sourceAgent": "antigravity",
   "author": "AnshulVatsOfficial",
   "git": {
     "repository": "https://github.com/AnshulVatsOfficial/cadence-web.git",
     "branch": "main",
-    "commitSha": "debfafe9dc87d65cd629359d0af454f905bcb436",
+    "commitSha": "0eededafd9a16968918c4951169b634063fa0186",
     "contextKey": "ffd81c2cb797fabb"
   },
   "handover": {
-    "objective": "write a brief 2-3 line para. about what cadence is all about here in this chat.",
+    "objective": "remove all nav items if user is not logged in as shown in attached screenshot.",
     "completedMilestones": [],
     "observedActivity": [
       "Working tree edits captured in git snapshot"
     ],
     "failedAttempts": [],
-    "currentBlockerOrActiveState": "Last assistant state: **Cadence** is a high-performance, internal project management and workspace platform inspired by tools like Jira and Trello. It features...",
+    "currentBlockerOrActiveState": "Last assistant state: The navigation items (`Features`, `Solutions`, `Templates`, `Pricing`) on the landing page have been updated to only render when the user...",
     "criticalFiles": [],
     "importantDecisions": [],
     "environmentConstraints": [],
     "suggestedNextAction": "Review recent changes and resume task",
-    "primedResumePrompt": "You are resuming an in-flight development session.\nObjective: write a brief 2-3 line para. about what cadence is all about here in this chat.\nCritical Files: See working tree changes\nRecent instructions:\n- write a brief 2-3 line para. about what cadence is all about here in this chat.\nPlease inspect these files and continue from where we left off.",
+    "primedResumePrompt": "You are resuming an in-flight development session.\nObjective: remove all nav items if user is not logged in as shown in attached screenshot.\nCritical Files: See working tree changes\nRecent instructions:\n- remove all nav items if user is not logged in as shown in attached screenshot.\nPlease inspect these files and continue from where we left off.",
     "confidence": {
       "objective": "high",
       "currentState": "medium"

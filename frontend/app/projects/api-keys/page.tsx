@@ -98,6 +98,9 @@ export default function ApiKeysPage() {
   const getTabSnippet = () => {
     switch (activeTab) {
       case 'claude':
+      case 'cursor':
+      case 'cli':
+      default:
         return `{
   "mcpServers": {
     "cadence": {
@@ -109,16 +112,6 @@ export default function ApiKeysPage() {
     }
   }
 }`;
-      case 'cursor':
-        return `// Add under Cursor Settings > Features > MCP Servers > "+ Add New MCP Server"
-// Name: Cadence
-// Type: command
-// Command:
-
-env CADENCE_API_KEY="${activeKeyValue}" npx -y cadence-mcp`;
-      case 'cli':
-        return `# Quick test via terminal / npx
-CADENCE_API_KEY="${activeKeyValue}" npx -y cadence-mcp`;
     }
   };
 
@@ -379,13 +372,13 @@ CADENCE_API_KEY="${activeKeyValue}" npx -y cadence-mcp`;
                 {activeTab === 'cursor' && (
                   <ol className="space-y-3 list-decimal list-inside text-[#5E6C84]">
                     <li>
-                      Open <strong className="text-[#172B4D]">Cursor Settings</strong> &gt; Features &gt; MCP Servers.
+                      Open <strong className="text-[#172B4D]">Cursor Settings</strong> &gt; Features &gt; MCP (or create <code>.cursor/mcp.json</code> in your project root).
                     </li>
                     <li>
-                      Click <strong className="text-[#172B4D]">"+ Add New MCP Server"</strong>.
+                      Click <strong className="text-[#172B4D]">Edit Config</strong> to open <code>mcp.json</code>.
                     </li>
                     <li>
-                      Name it <strong className="text-[#172B4D]">Cadence</strong>, set Type to <strong className="text-[#172B4D]">command</strong>, and paste the command snippet below.
+                      Add the snippet below into your <code>mcpServers</code> section:
                     </li>
                   </ol>
                 )}
@@ -393,10 +386,13 @@ CADENCE_API_KEY="${activeKeyValue}" npx -y cadence-mcp`;
                 {activeTab === 'cli' && (
                   <ol className="space-y-3 list-decimal list-inside text-[#5E6C84]">
                     <li>
-                      Execute the MCP server directly using <code>npx</code> or add it to your tool's MCP config.
+                      Open <strong className="text-[#172B4D]">Windsurf</strong> &gt; Cascade / MCP Settings (or navigate to <code>~/.codeium/windsurf/mcp_config.json</code>).
                     </li>
                     <li>
-                      Ensure <code>CADENCE_API_KEY</code> environment variable is exported.
+                      Click <strong className="text-[#172B4D]">Edit Config</strong> to open <code>mcp_config.json</code>.
+                    </li>
+                    <li>
+                      Add the snippet below into your <code>mcpServers</code> section:
                     </li>
                   </ol>
                 )}
